@@ -12,8 +12,6 @@ analyzer:
     # allow having TODOs in the code
     todo: ignore
   exclude:
-    - "lib/**.freezed.dart"
-    - "lib/**.g.dart"
     - "lib/helpers/viet_calendar.dart"
 #    - "bin/cache/**"
     # the following two are relative to the stocks example and the flutter package respectively
