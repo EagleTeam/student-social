@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lazy_code/lazy_code.dart';
 import 'package:provider/provider.dart';
+import 'package:studentsocial/services/local_storage/database/database.dart';
 
 import '../../../models/entities/profile.dart';
-import '../../../models/local/database/database.dart';
 import '../extracurricular/extracurricular.dart';
 import '../login/login.dart';
 import '../login/login_notifier.dart';

@@ -1,20 +1,19 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/src/widgets/editable_text.dart';
 import 'package:studentsocial/models/entities/semester.dart';
 import 'package:studentsocial/services/http/rest_client.dart';
+import 'package:studentsocial/services/local_storage/database/database.dart';
+import 'package:studentsocial/services/local_storage/database/repository/profile_repository.dart';
+import 'package:studentsocial/services/local_storage/database/repository/schedule_repository.dart';
+
 import '../../../helpers/logging.dart';
 import '../../../models/entities/login.dart';
 import '../../../models/entities/profile.dart';
-import '../../../models/local/database/database.dart';
-import '../../../models/local/repository/profile_repository.dart';
-import '../../../models/local/repository/schedule_repository.dart';
-import '../../../models/local/shared_prefs.dart';
-import 'login_state.dart';
 import '../../../models/entities/schedule.dart';
+import '../../../services/local_storage/shared_prefs.dart';
+import 'login_state.dart';
 
 enum LoginAction {
   alert_with_message,

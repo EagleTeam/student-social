@@ -17,7 +17,7 @@ abstract class RestClient {
     dio.interceptors.add(LogInterceptor(
         responseBody: true,
         requestHeader: false,
-        requestBody: false,
+        requestBody: true,
         request: false));
 
     return RestClient(dio);

@@ -1,6 +1,7 @@
-import '../../entities/profile.dart';
-import '../database/database.dart';
-import '../database/profile_dao.dart';
+import 'package:studentsocial/models/entities/profile.dart';
+
+import '../database.dart';
+import '../profile_dao.dart';
 
 class ProfileRepository {
   ProfileRepository(MyDatabase database) {

@@ -5,10 +5,10 @@ import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_core/core.dart';
 
 import 'config/strings.dart';
-import 'models/local/database/database.dart';
 import 'presentation/screens/main/main.dart';
 import 'presentation/screens/main/main_notifier.dart';
 import 'services/http/rest_client.dart';
+import 'services/local_storage/database/database.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,67 +57,28 @@ class MyApp extends StatelessWidget {
         builder: (context, snapshot) {
           // Check for errors
           if (snapshot.hasError) {
-            return Container(
-              color: Colors.white,
-              child: const Center(
-                child: Text('Oops! Something went wrong.'),
+            return Material(
+              child: Container(
+                color: Colors.white,
+                child: const Center(
+                  child: Text('Oops!\n Something went wrong.'),
+                ),
               ),
             );
           }
 
           // Once complete, show your application
           if (snapshot.connectionState == ConnectionState.done) {
-            return MaterialApp(
-              localizationsDelegates: const [
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-              ],
-              supportedLocales: const [
-                Locale('en'),
-                Locale('vi'),
-              ],
-              locale: const Locale('vi'),
-              title: Strings.titleApp,
-              theme: ThemeData(primaryColor: Colors.green),
-              home: FutureBuilder(
-                future: _initialization,
-                builder: (context, snapshot) {
-                  // Check for errors
-                  if (snapshot.hasError) {
-                    return Material(
-                      child: Container(
-                        color: Colors.white,
-                        child: const Center(
-                          child: Text('Oops! Something went wrong.'),
-                        ),
-                      ),
-                    );
-                  }
-
-                  // Once complete, show your application
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    return MainScreen();
-                  }
-
-                  // Otherwise, show something whilst waiting for initialization to complete
-                  return Material(
-                    child: Container(
-                      color: Colors.white,
-                      child: const Center(
-                        child: Text('Loading Firebase ...'),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            );
+            return MainScreen();
           }
 
           // Otherwise, show something whilst waiting for initialization to complete
-          return Container(
-            color: Colors.white,
-            child: const Center(
-              child: Text('Loading Firebase ...'),
+          return Material(
+            child: Container(
+              color: Colors.white,
+              child: const Center(
+                child: Text('Loading Firebase ...'),
+              ),
             ),
           );
         },

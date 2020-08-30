@@ -1,5 +1,6 @@
+import 'package:studentsocial/models/entities/schedule.dart';
+
 import '../../../helpers/logging.dart';
-import '../../entities/schedule.dart';
 import 'database.dart';
 
 class ScheduleDao {

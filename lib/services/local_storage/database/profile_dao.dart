@@ -1,4 +1,5 @@
-import '../../entities/profile.dart';
+import 'package:studentsocial/models/entities/profile.dart';
+
 import 'database.dart';
 
 class ProfileDao {

@@ -9,16 +9,16 @@ import 'package:studentsocial/models/entities/event_student_social.dart';
 import 'package:studentsocial/models/entities/login_result.dart';
 import 'package:studentsocial/services/google_calendar/calendar_service_communicate.dart';
 import 'package:studentsocial/services/google_calendar/calendar_service_model.dart';
+import 'package:studentsocial/services/local_storage/database/database.dart';
+import 'package:studentsocial/services/local_storage/database/repository/profile_repository.dart';
+import 'package:studentsocial/services/local_storage/database/repository/schedule_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../helpers/logging.dart';
 import '../../../helpers/notification.dart';
 import '../../../models/entities/profile.dart';
 import '../../../models/entities/schedule.dart';
-import '../../../models/local/database/database.dart';
-import '../../../models/local/repository/profile_repository.dart';
-import '../../../models/local/repository/schedule_repository.dart';
-import '../../../models/local/shared_prefs.dart';
+import '../../../services/local_storage/shared_prefs.dart';
 import 'main_model.dart';
 
 class MainNotifier with ChangeNotifier {

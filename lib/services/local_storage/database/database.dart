@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:studentsocial/models/entities/db_parseable.dart';
+import 'package:studentsocial/models/entities/mark.dart';
+import 'package:studentsocial/models/entities/profile.dart';
+import 'package:studentsocial/models/entities/schedule.dart';
 
 import '../../../helpers/logging.dart';
-import '../../entities/db_parseable.dart';
-import '../../entities/mark.dart';
-import '../../entities/profile.dart';
-import '../../entities/schedule.dart';
 
 ///******************** MyDatabase *****************///
 

@@ -1,19 +1,16 @@
-import 'number.dart';
-
 class DateSupport {
   DateSupport() {
     _now = DateTime.now();
-    _numberSupport = NumberSupport();
     _initTime();
   }
+
   DateSupport.fromDate(this._now);
 
   DateSupport.frommUTC(int y, int m, int d) {
     _now = DateTime(y, m, d);
   }
-  DateTime _now;
-  NumberSupport _numberSupport;
 
+  DateTime _now;
   List<String> _time1, _time2;
 
   void _initTime() {
@@ -48,7 +45,7 @@ class DateSupport {
   }
 
   String format(DateTime date) {
-    return '${_numberSupport.format(date.year)}-${_numberSupport.format(date.month)}-${_numberSupport.format(date.day)}';
+    return '${date.year}-${date.month.toString().padRight(2, '0')}-${date.day.toString().padRight(2, '0')}';
   }
 
   DateTime getDate(int day) {

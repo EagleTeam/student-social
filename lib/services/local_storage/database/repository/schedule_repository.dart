@@ -1,8 +1,8 @@
 import 'package:intl/intl.dart';
+import 'package:studentsocial/models/entities/schedule.dart';
 
-import '../../entities/schedule.dart';
-import '../database/database.dart';
-import '../database/schedule_dao.dart';
+import '../database.dart';
+import '../schedule_dao.dart';
 
 class ScheduleRepository {
   ScheduleRepository(MyDatabase database) {
