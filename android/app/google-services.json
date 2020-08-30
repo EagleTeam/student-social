@@ -1,0 +1,85 @@
+{
+  "project_info": {
+    "project_number": "941723114855",
+    "firebase_url": "https://studentsocial-1316f.firebaseio.com",
+    "project_id": "studentsocial-1316f",
+    "storage_bucket": "studentsocial-1316f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:941723114855:android:d1c96570d7a4c8238563c2",
+        "android_client_info": {
+          "package_name": "com.eagleteam.knigh.schedule"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "941723114855-rmf5p2s0ng26382bd54idorb3t64no68.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.eagleteam.knigh.schedule",
+            "certificate_hash": "5fdd78af59ff23aa4690e15ee831209a79c00641"
+          }
+        },
+        {
+          "client_id": "941723114855-4uhi5koj0qpaeitgmqpfpli611v3co0l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBB3Zqx2TT7ybL3lIWwTX-TIdgLDM8D__Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "941723114855-4uhi5koj0qpaeitgmqpfpli611v3co0l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:941723114855:android:e0fc9080a186fd5f8563c2",
+        "android_client_info": {
+          "package_name": "com.tbm.studentsocialgooglecalendar"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "941723114855-d7anic04gnogrrnhiir5g6vcibh5e4n8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tbm.studentsocialgooglecalendar",
+            "certificate_hash": "5fdd78af59ff23aa4690e15ee831209a79c00641"
+          }
+        },
+        {
+          "client_id": "941723114855-4uhi5koj0qpaeitgmqpfpli611v3co0l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBB3Zqx2TT7ybL3lIWwTX-TIdgLDM8D__Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "941723114855-4uhi5koj0qpaeitgmqpfpli611v3co0l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
