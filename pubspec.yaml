@@ -41,8 +41,6 @@ dependencies:
 
   # for state management
   state_notifier: ^0.6.0
-  flutter_state_notifier: ^0.6.1
-  provider: ^4.3.2+1
   # new version of provider
   flutter_riverpod: ^0.7.2
 

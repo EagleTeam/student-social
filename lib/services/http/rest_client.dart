@@ -8,6 +8,8 @@ import '../../models/entities/semester.dart';
 
 part 'rest_client.g.dart';
 
+final restClient = RestClient.create();
+
 @RestApi(baseUrl: URL.server)
 abstract class RestClient {
   factory RestClient(Dio dio, {String baseUrl}) = _RestClient;
