@@ -23,9 +23,10 @@ class GoogleSignInHelper {
       idToken: googleSignInAuthentication.idToken,
     );
 
-    final AuthResult authResult = await _auth.signInWithCredential(credential);
+    final UserCredential authResult =
+        await _auth.signInWithCredential(credential);
 
-    final FirebaseUser user = authResult.user;
+    final User user = authResult.user;
 
     // Checking if email and name is null
     assert(user.email != null, 'email must not be null');
@@ -35,7 +36,7 @@ class GoogleSignInHelper {
     assert(!user.isAnonymous, 'user must not be anonymous');
     assert(await user.getIdToken() != null, 'token must not be null');
 
-    final FirebaseUser currentUser = await _auth.currentUser();
+    final User currentUser = _auth.currentUser;
     assert(user.uid == currentUser.uid, 'uid must be match');
 
     final headers = await googleSignInAccount.authHeaders;

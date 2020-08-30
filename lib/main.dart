@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -33,6 +34,9 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  // Create the initilization Future outside of `build`:
+  final Future<FirebaseApp> _initialization = Firebase.initializeApp();
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -47,7 +51,33 @@ class MyApp extends StatelessWidget {
       locale: const Locale('vi'),
       title: Strings.titleApp,
       theme: ThemeData(primaryColor: Colors.green),
-      home: MainScreen(),
+      home: FutureBuilder(
+        future: _initialization,
+        builder: (context, snapshot) {
+          // Check for errors
+          if (snapshot.hasError) {
+            return Container(
+              color: Colors.white,
+              child: const Center(
+                child: Text('Oops! Something went wrong.'),
+              ),
+            );
+          }
+
+          // Once complete, show your application
+          if (snapshot.connectionState == ConnectionState.done) {
+            return MainScreen();
+          }
+
+          // Otherwise, show something whilst waiting for initialization to complete
+          return Container(
+            color: Colors.white,
+            child: const Center(
+              child: Text('Loading Firebase ...'),
+            ),
+          );
+        },
+      ),
     );
   }
 }
