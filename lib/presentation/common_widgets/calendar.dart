@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:studentsocial/helpers/logging.dart';
+import 'package:studentsocial/helpers/viet_calendar.dart';
 import 'package:studentsocial/models/entities/schedule.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
@@ -17,11 +17,6 @@ class CalendarWidget extends StatefulWidget {
 class _CalendarWidgetState extends State<CalendarWidget> {
   DateTime _date = DateTime.now();
   CalendarController calendarController = CalendarController();
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   CalendarHeaderStyle calendarHeaderStyle = CalendarHeaderStyle(
       textAlign: TextAlign.center,
@@ -55,9 +50,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
             monthViewSettings: monthViewSettings,
             onTap: (CalendarTapDetails details) {
               if (details.targetElement == CalendarElement.calendarCell) {
-                if (widget.onTap != null) {
-                  widget.onTap(details);
-                }
+                widget.onTap?.call(details);
                 setState(() {
                   _date = details.date;
                 });
@@ -156,6 +149,10 @@ class ListScheduleWidget extends StatelessWidget {
   }
 
   Widget dateTitle(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: currentDateTitle(context),
+    );
     if (isCurrentDay()) {
       return Padding(
         padding: const EdgeInsets.all(8),
@@ -170,18 +167,23 @@ class ListScheduleWidget extends StatelessWidget {
   }
 
   Widget currentDateTitle(BuildContext context) {
+    final al = VietCalendar().lichAm(date.day, date.month, date.year);
     return Column(
       children: [
-        Text(
-          titleDay(context),
-          style: const TextStyle(color: Colors.blueAccent),
+        const Text(
+          'Âm lịch',
+          style: TextStyle(color: Colors.blueAccent),
         ),
-        CircleAvatar(
-          backgroundColor: Colors.blueAccent,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.blueAccent,
+            borderRadius: BorderRadius.circular(2),
+          ),
           child: Text(
-            date.day.toString(),
+            '${al[0]}/${al[1]}',
             style: const TextStyle(
-                fontWeight: FontWeight.bold, color: Colors.white),
+                fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
           ),
         ),
       ],
