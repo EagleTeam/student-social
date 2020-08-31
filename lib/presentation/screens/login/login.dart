@@ -1,6 +1,13 @@
+import 'package:action_mixin/action_mixin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lazy_code/lazy_code.dart';
+import 'package:studentsocial/events/alert.dart';
+import 'package:studentsocial/events/alert_chon_kyhoc.dart';
+import 'package:studentsocial/events/loading_message.dart';
+import 'package:studentsocial/events/pop.dart';
+import 'package:studentsocial/events/save_success.dart';
 
 import '../../../helpers/dialog_support.dart';
 import '../../../models/entities/semester.dart';
@@ -11,32 +18,53 @@ class LoginScreen extends StatefulWidget {
   _LoginScreenState createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> with DialogSupport {
-  LoginNotifier _loginViewModel;
+class _LoginScreenState extends State<LoginScreen> {
   FocusNode textSecondFocusNode = FocusNode();
-  bool listened = false;
   final TextEditingController controllerEmail = TextEditingController();
-
   final TextEditingController controllerPassword = TextEditingController();
 
-  void _initViewModel() {
-    _loginViewModel = Provider.of<LoginNotifier>(context);
-    if (!listened) {
-      _loginViewModel.getActionStream().listen((value) async {
-        if (value['type'] == LoginAction.pop) {
-          pop(context);
-        } else if (value['type'] == LoginAction.loading) {
-          loading(context, value['data']);
-        } else if (value['type'] == LoginAction.alert_with_message) {
-          showAlertMessage(context, value['data']);
-        } else if (value['type'] == LoginAction.alert_chon_kyhoc) {
-          _showAlertChonKyHoc(value['data']);
-        } else if (value['type'] == LoginAction.save_success) {
-          saveSuccess();
-        }
-      });
-      listened = true;
-    }
+  @override
+  void initState() {
+    super.initState();
+    _initActions();
+  }
+
+  List<ActionEntry> actions() {
+    return [
+      ActionEntry(event: const EventPop(), action: (_) => pop(context)),
+      ActionEntry(
+          event: const EventLoadingMessage(),
+          action: (event) {
+            if (event is EventLoadingMessage) {
+              loadingMessage(context, event.message);
+            }
+          }),
+      ActionEntry(
+          event: const EventAlert(),
+          action: (event) {
+            if (event is EventAlert) {
+              showAlertMessage(context, event.message);
+            }
+          }),
+      ActionEntry(
+          event: const EventAlertChonKyHoc(),
+          action: (event) {
+            if (event is EventAlertChonKyHoc) {
+              _showAlertChonKyHoc(event.semesterResult);
+            }
+          }),
+      ActionEntry(
+          event: const EventSaveSuccess(),
+          action: (event) {
+            if (event is EventSaveSuccess) {
+              saveSuccess();
+            }
+          }),
+    ];
+  }
+
+  void _initActions() {
+    context.read(loginProvider).initActions(actions());
   }
 
   Future<void> saveSuccess() async {
@@ -78,7 +106,9 @@ class _LoginScreenState extends State<LoginScreen> with DialogSupport {
       controller: controllerPassword,
       obscureText: true,
       onSubmitted: (String value) {
-        _loginViewModel.submit(controllerEmail.text, controllerPassword.text);
+        context
+            .read(loginProvider)
+            .submit(controllerEmail.text, controllerPassword.text);
       },
       decoration: InputDecoration(
         hintText: 'Mật khẩu',
@@ -87,8 +117,9 @@ class _LoginScreenState extends State<LoginScreen> with DialogSupport {
         suffixIcon: IconButton(
             icon: const Icon(Icons.check_circle),
             onPressed: () {
-              _loginViewModel.submit(
-                  controllerEmail.text, controllerPassword.text);
+              context
+                  .read(loginProvider)
+                  .submit(controllerEmail.text, controllerPassword.text);
             }),
         contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -114,8 +145,9 @@ class _LoginScreenState extends State<LoginScreen> with DialogSupport {
           alignment: Alignment.topRight,
           child: RaisedButton(
             onPressed: () {
-              _loginViewModel.submit(
-                  controllerEmail.text, controllerPassword.text);
+              context
+                  .read(loginProvider)
+                  .submit(controllerEmail.text, controllerPassword.text);
             },
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -131,8 +163,6 @@ class _LoginScreenState extends State<LoginScreen> with DialogSupport {
 
   @override
   Widget build(BuildContext context) {
-    _initViewModel();
-
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(24),
@@ -172,7 +202,7 @@ class _LoginScreenState extends State<LoginScreen> with DialogSupport {
               ),
               trailing: const Icon(Icons.arrow_forward),
               onTap: () {
-                _loginViewModel.semesterClicked(data.MaKy);
+                context.read(loginProvider).semesterClicked(data.MaKy);
               },
               contentPadding: const EdgeInsets.all(0),
             ),

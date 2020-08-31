@@ -2,11 +2,16 @@ import 'dart:convert';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studentsocial/helpers/logging.dart';
 
 import '../../../models/entities/mark.dart';
 import '../../../models/entities/profile.dart';
 import 'mark_model.dart';
+
+final markProvider = ChangeNotifierProvider<MarkNotifier>((ref) {
+  return MarkNotifier();
+});
 
 class MarkNotifier with ChangeNotifier {
   MarkNotifier() {

@@ -1,17 +1,20 @@
 import 'dart:async';
 
+import 'package:action_mixin/action_mixin.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lazy_code/lazy_code.dart';
-import 'package:provider/provider.dart';
-import 'package:studentsocial/helpers/logging.dart';
-import 'package:studentsocial/models/entities/event.dart';
-import 'package:studentsocial/models/entities/login_result.dart';
-import 'package:studentsocial/models/entities/schedule.dart';
 
+import '../../../events/alert.dart';
+import '../../../events/alert_update_schedule.dart';
+import '../../../events/pop.dart';
 import '../../../helpers/dialog_support.dart';
+import '../../../helpers/logging.dart';
+import '../../../models/entities/login_result.dart';
 import '../../common_widgets/add_note.dart';
 import '../../common_widgets/calendar.dart';
+import '../../common_widgets/circle_loading.dart';
 import '../../common_widgets/update_lich.dart';
 import 'drawer.dart';
 import 'main_notifier.dart';
@@ -21,9 +24,12 @@ class MainScreen extends StatefulWidget {
   State createState() => MainScreenState();
 }
 
-class MainScreenState extends State<MainScreen> with DialogSupport {
-  MainNotifier _mainNotifier;
-  bool listened = false;
+class MainScreenState extends State<MainScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _initActions();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,13 +41,11 @@ class MainScreenState extends State<MainScreen> with DialogSupport {
           _updateScheduleButton,
         ],
       ),
-      body: Selector<MainNotifier, List<Schedule>>(
-        selector: (_, mainNotifier) => mainNotifier.getSchedules,
-        builder: (_, schedules, __) {
+      body: Consumer(
+        builder: (ctx, watch, child) {
+          final schedules = watch(mainProvider).getSchedules;
           if (schedules == null) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const CircleLoading();
           }
           return CalendarWidget(
             schedules: schedules,
@@ -59,52 +63,48 @@ class MainScreenState extends State<MainScreen> with DialogSupport {
   }
 
   Widget get _uploadScheduleButton {
-    return Selector<MainNotifier, bool>(
-      selector: (_, mainNotifier) => mainNotifier.isGuest,
-      builder: (_, isGuest, __) {
-        if (isGuest) {
-          return const SizedBox();
-        } else {
-          return IconButton(
-              onPressed: uploadScheduleClicked,
-              icon: const Icon(Icons.cloud_upload));
-        }
-      },
-    );
+    return Consumer(
+        builder: (ctx, watch, child) {
+          final bool isGuest = watch(mainProvider).isGuest;
+          if (isGuest) {
+            return const SizedBox();
+          }
+          return child;
+        },
+        child: IconButton(
+            onPressed: uploadScheduleClicked,
+            icon: const Icon(Icons.cloud_upload)));
   }
 
-  void _initViewModel() {
-    _mainNotifier = context.read<MainNotifier>();
-    _mainNotifier.initSize(MediaQuery.of(context).size);
-    if (!listened) {
-      _mainNotifier.getStreamAction.listen((data) {
-        if (data.type == EventType.alertMessage) {
-          showAlertMessage(context, data.data);
-          setState(() {});
-        } else if (data.type == EventType.alertUpdateSchedule) {
-          _showDialogUpdateLich();
-        } else if (data.type == EventType.pop) {
-          context.pop();
-        }
-      });
-      listened = true;
-    }
+  List<ActionEntry> actions() {
+    return [
+      ActionEntry(event: const EventPop(), action: (_) => pop(context)),
+      ActionEntry(
+          event: const EventAlertUpdateSchedule(),
+          action: (_) => _showDialogUpdateLich()),
+      ActionEntry(
+          event: const EventAlert(),
+          action: (event) {
+            if (event is EventAlert) {
+              showAlertMessage(context, event.message);
+              setState(() {});
+            }
+          }),
+    ];
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _initViewModel();
+  void _initActions() {
+    context.read(mainProvider).initActions(actions());
   }
 
   Future<void> uploadScheduleClicked() async {
-    final loginResult = await _mainNotifier.googleLogin();
+    final loginResult = await context.read(mainProvider).googleLogin();
     logs(loginResult.firebaseUser.photoUrl);
     showGoogleInfo(loginResult);
   }
 
   void showUploadProcessing() async {
-    final events = await _mainNotifier.getEventStudentSocials();
+    final events = await context.read(mainProvider).getEventStudentSocials();
     showDialog(
         context: context,
         barrierDismissible: false, // Khong duoc an dialog
@@ -115,7 +115,9 @@ class MainScreenState extends State<MainScreen> with DialogSupport {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: StreamBuilder(
-                  stream: _mainNotifier.calendarServiceCommunicate
+                  stream: context
+                      .read(mainProvider)
+                      .calendarServiceCommunicate
                       .addEvents(events),
                   builder: (context, snapshot) {
                     logs('data is ${snapshot.data}');
@@ -204,8 +206,8 @@ class MainScreenState extends State<MainScreen> with DialogSupport {
                       ),
                       IconButton(
                         onPressed: () async {
-                          _mainNotifier.googleLogout();
-                          Navigator.of(ct).pop();
+                          context.read(mainProvider).googleLogout();
+                          pop(ct);
                           uploadScheduleClicked();
                         },
                         icon: const Icon(Icons.refresh),
@@ -227,35 +229,34 @@ class MainScreenState extends State<MainScreen> with DialogSupport {
   }
 
   Widget get _updateScheduleButton {
-    return Selector<MainNotifier, bool>(
-      selector: (_, mainNotifier) => mainNotifier.isGuest,
-      builder: (_, isGuest, __) {
+    return Consumer(
+      builder: (ctx, watch, child) {
+        final isGuest = watch(mainProvider).isGuest;
         if (isGuest) {
           return const SizedBox();
-        } else {
-          return IconButton(
-            icon: const Icon(Icons.refresh),
-//            onPressed: _mainNotifier.updateSchedule,
-            onPressed: () {
-              showDialog(
-                  context: context,
-                  builder: (ct) {
-                    return AlertDialog(
-                      title: const Text(':('),
-                      content: const Text('Tính năng đang được bảo trì'),
-                      actions: [
-                        FlatButton(
-                          onPressed: () {
-                            Navigator.of(ct).pop();
-                          },
-                          child: const Text('ok'),
-                        )
-                      ],
-                    );
-                  });
-            },
-          );
         }
+        return IconButton(
+          icon: const Icon(Icons.refresh),
+//            onPressed: _mainNotifier.updateSchedule,
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (ct) {
+                  return AlertDialog(
+                    title: const Text(':('),
+                    content: const Text('Tính năng đang được bảo trì'),
+                    actions: [
+                      FlatButton(
+                        onPressed: () {
+                          Navigator.of(ct).pop();
+                        },
+                        child: const Text('ok'),
+                      )
+                    ],
+                  );
+                });
+          },
+        );
       },
     );
   }
@@ -266,7 +267,7 @@ class MainScreenState extends State<MainScreen> with DialogSupport {
       barrierDismissible: false, // user must tap button!
       builder: (BuildContext context) {
         return AddNote(
-          date: _mainNotifier.getClickedDay,
+          // date: context.read(mainProvider).getClickedDay,
           context: this.context,
         ); //magic ^_^
       },

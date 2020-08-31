@@ -1,7 +1,15 @@
 import 'dart:async';
 
+import 'package:action_mixin/action_mixin.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:studentsocial/events/alert.dart';
+import 'package:studentsocial/events/alert_chon_kyhoc.dart';
+import 'package:studentsocial/events/loading_message.dart';
+import 'package:studentsocial/events/pop.dart';
+import 'package:studentsocial/events/save_success.dart';
+import 'package:studentsocial/main.dart';
 import 'package:studentsocial/models/entities/semester.dart';
 import 'package:studentsocial/services/http/rest_client.dart';
 import 'package:studentsocial/services/local_storage/database/database.dart';
@@ -15,15 +23,11 @@ import '../../../models/entities/schedule.dart';
 import '../../../services/local_storage/shared_prefs.dart';
 import 'login_state.dart';
 
-enum LoginAction {
-  alert_with_message,
-  loading,
-  alert_chon_kyhoc,
-  pop,
-  save_success
-}
+final loginProvider = ChangeNotifierProvider<LoginNotifier>((ref) {
+  return LoginNotifier(ref.watch(databaseProvider));
+});
 
-class LoginNotifier with ChangeNotifier {
+class LoginNotifier with ChangeNotifier, ActionMixin {
   LoginNotifier(MyDatabase database) {
     _sharedPrefs = SharedPrefs();
     _profileRepository = ProfileRepository(database);
@@ -49,21 +53,13 @@ class LoginNotifier with ChangeNotifier {
   bool dataIsInvalid(String email, String password) =>
       email.trim().isEmpty || password.trim().isEmpty;
 
-  Sink _inputAction() {
-    return _streamController.sink;
-  }
-
-  Stream getActionStream() {
-    return _streamController.stream;
-  }
-
-  void _pop() {
-    _inputAction().add({'type': LoginAction.pop});
-  }
-
-  void _loading(String msg) {
-    _inputAction().add({'type': LoginAction.loading, 'data': msg});
-  }
+  // void _pop() {
+  //   _inputAction().add({'type': LoginAction.pop});
+  // }
+  //
+  // void _loading(String msg) {
+  //   _inputAction().add({'type': LoginAction.loading, 'data': msg});
+  // }
 
   Future<void> submit(String email, String password) async {
     final bool isOnline = await _checkInternetConnectivity();
@@ -71,20 +67,16 @@ class LoginNotifier with ChangeNotifier {
       return;
     }
     if (dataIsInvalid(email, password)) {
-      _inputAction().add({
-        'type': LoginAction.alert_with_message,
-        'data': 'Bạn không được để trống Mã sinh viên hoặc mật khẩu'
-      });
+      callback(const EventAlert(
+          message: 'Bạn không được để trống Mã sinh viên hoặc mật khẩu'));
+
       return;
     }
     if (await isExists(email.toUpperCase())) {
-      _inputAction().add({
-        'type': LoginAction.alert_with_message,
-        'data': 'Mã sinh viên này đã được thêm rồi'
-      });
+      callback(const EventAlert(message: 'Mã sinh viên này đã được thêm rồi'));
       return;
     }
-    _loading('Đang đăng nhập...');
+    callback(const EventLoadingMessage(message: 'Đang đăng nhập...'));
     _actionLogin(email.toUpperCase(), password);
   }
 
@@ -96,10 +88,8 @@ class LoginNotifier with ChangeNotifier {
   Future<bool> _checkInternetConnectivity() async {
     final ConnectivityResult result = await Connectivity().checkConnectivity();
     if (result == ConnectivityResult.none) {
-      _inputAction().add({
-        'type': LoginAction.alert_with_message,
-        'data': 'Không có kết nối mạng :('
-      });
+      callback(const EventAlert(message: 'Không có kết nối mạng :('));
+
       return false;
     } else if (result == ConnectivityResult.mobile ||
         result == ConnectivityResult.wifi) {
@@ -114,15 +104,14 @@ class LoginNotifier with ChangeNotifier {
     if (result.isSuccess()) {
       _loginModel.profile = (result as LoginSuccess).message.profile;
       _loginModel.token = (result as LoginSuccess).message.Token;
-      _pop();
-      _loading('Đang tải kỳ học');
+      callback(const EventPop());
+      callback(const EventLoadingMessage(message: 'Đang tải kỳ học'));
+
       _getSemester(_loginModel.token);
     } else {
-      _pop();
-      _inputAction().add({
-        'type': LoginAction.alert_with_message,
-        'data': 'Mã sinh viên hoặc mật khẩu đăng nhập sai !'
-      });
+      callback(const EventPop());
+      callback(const EventAlert(
+          message: 'Mã sinh viên hoặc mật khẩu đăng nhập sai !'));
     }
   }
 
@@ -130,39 +119,38 @@ class LoginNotifier with ChangeNotifier {
     logs('token is $token');
     final SemesterResult semesterResult = await _client.getSemester(token);
     logs('semesterResult is ${semesterResult.toJson()}');
-    _pop();
-    _inputAction()
-        .add({'type': LoginAction.alert_chon_kyhoc, 'data': semesterResult});
+    callback(const EventPop());
+    callback(EventAlertChonKyHoc(semesterResult: semesterResult));
   }
 
   void semesterClicked(String data) {
     logs('data is $data');
-    _pop();
+    callback(const EventPop());
     _loginModel.semester = data;
     _loadData(data);
   }
 
   Future<void> _loadData(String semester) async {
-    _loading('Đang lấy lịch học');
+    callback(const EventLoadingMessage(message: 'Đang lấy lịch học'));
     _loginModel.lichHoc = await _client.getLichHoc(_loginModel.token, semester);
-    _pop();
-    _loading('Đang lấy lịch thi');
+    callback(const EventPop());
+    callback(const EventLoadingMessage(message: 'Đang lấy lịch thi'));
     _loginModel.lichThi = await _client.getLichThi(_loginModel.token, semester);
-    _pop();
+    callback(const EventPop());
     _saveInfo();
   }
 
   Future<void> _saveInfo() async {
-    //TODO: add later
-    _loading('Đang lưu thông tin người dùng');
+    callback(
+        const EventLoadingMessage(message: 'Đang lưu thông tin người dùng'));
     final int resProfile =
         await _profileRepository.insertOnlyUser(_loginModel.profile);
-    _pop();
+    callback(const EventPop());
     logs('saveProfileToDB: $resProfile');
     final bool resCurrentMSV =
         await _sharedPrefs.setCurrentMSV(_loginModel.msv);
     logs('saveCurrentMSV:$resCurrentMSV');
-    _loading('Đang lưu lịch cá nhân');
+    callback(const EventLoadingMessage(message: 'Đang lưu lịch cá nhân'));
     await saveMarkToDB();
     if (_loginModel.lichHoc.isSuccess()) {
       (_loginModel.lichHoc as ScheduleSuccess).message.addMSV(_loginModel.msv);
@@ -174,10 +162,10 @@ class LoginNotifier with ChangeNotifier {
       await _scheduleRepository.insertListSchedules(
           (_loginModel.lichThi as ScheduleSuccess).message.Entries);
     }
-    _pop();
-    _inputAction().add({'type': LoginAction.save_success});
-    await Future.delayed(Duration(milliseconds: 800));
-    _pop();
+    callback(const EventPop());
+    callback(EventSaveSuccess());
+    await Future.delayed(const Duration(milliseconds: 800));
+    callback(const EventPop());
   }
 
   Future<void> saveMarkToDB() async {

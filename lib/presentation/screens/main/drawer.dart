@@ -1,14 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lazy_code/lazy_code.dart';
-import 'package:provider/provider.dart';
-import 'package:studentsocial/services/local_storage/database/database.dart';
 
 import '../../../models/entities/profile.dart';
 import '../extracurricular/extracurricular.dart';
 import '../login/login.dart';
-import '../login/login_notifier.dart';
 import '../mark/mark.dart';
-import '../mark/mark_notifier.dart';
 import '../qr/qrcode_view.dart';
 import '../settings.dart';
 import '../time_table.dart';
@@ -20,8 +17,6 @@ class DrawerWidget extends StatefulWidget {
 }
 
 class _DrawerWidgetState extends State<DrawerWidget> {
-  MainNotifier _mainNotifier;
-
   Widget _loginTile() {
     return ListTile(
       title: const Text('Đăng nhập bằng tài khoản sinh viên'),
@@ -32,12 +27,9 @@ class _DrawerWidgetState extends State<DrawerWidget> {
       ),
       onTap: () async {
         context.pop();
-        await context.push((BuildContext context) =>
-            ChangeNotifierProvider<LoginNotifier>(
-              create: (_) => LoginNotifier(Provider.of<MyDatabase>(context)),
-              child: LoginScreen(),
-            ));
-        _mainNotifier.loadCurrentMSV();
+        await context.push((BuildContext context) => LoginScreen());
+        context.read(mainProvider).loadCurrentMSV();
+        context.refresh(mainProvider);
       },
     );
   }
@@ -53,7 +45,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
       onTap: () {
         context
           ..pop()
-          ..push((_) => TimeTable(msv: _mainNotifier.getMSV));
+          ..push((_) => TimeTable(msv: context.read(mainProvider).getMSV));
       },
     );
   }
@@ -69,10 +61,8 @@ class _DrawerWidgetState extends State<DrawerWidget> {
       onTap: () {
         Navigator.of(context).pop();
         Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => ChangeNotifierProvider<MarkNotifier>(
-                  create: (_) => MarkNotifier(),
-                  child: MarkScreen(),
-                )));
+          builder: (_) => MarkScreen(),
+        ));
       },
     );
   }
@@ -90,7 +80,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
           ..pop()
           ..push(
             (_) => ExtracurricularScreen(
-              msv: _mainNotifier.getMSV,
+              msv: context.read(mainProvider).getMSV,
             ),
           );
       },
@@ -112,7 +102,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
             context,
             MaterialPageRoute(
               builder: (BuildContext context) => QRCodeScreen(
-                data: _mainNotifier.getMSV,
+                data: context.read(mainProvider).getMSV,
               ),
             ));
       },
@@ -129,7 +119,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
       ),
       onTap: () {
         context.pop();
-        _mainNotifier.launchURL();
+        context.read(mainProvider).launchURL();
       },
     );
   }
@@ -188,7 +178,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
             FlatButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                _mainNotifier.logOut();
+                context.read(mainProvider).logOut();
               },
               child: const Text('Đồng ý'),
             )
@@ -242,21 +232,25 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                 ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.yellow,
-                    child: Text(
-                        _mainNotifier.getName.substring(0, 1).toUpperCase()),
+                    child: Text(context
+                        .read(mainProvider)
+                        .getName
+                        .substring(0, 1)
+                        .toUpperCase()),
                   ),
                   title: Text(
-                    _mainNotifier.getName,
+                    context.read(mainProvider).getName,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text(_mainNotifier.getClass),
+                  subtitle: Text(context.read(mainProvider).getClass),
                 ),
                 const Divider(),
                 Container(
                   height: MediaQuery.of(context).size.height * 0.4,
                   width: MediaQuery.of(context).size.width * 0.7,
                   child: ListView.builder(
-                      itemCount: _mainNotifier.getAllProfile.length,
+                      itemCount:
+                          context.read(mainProvider).getAllProfile.length,
                       itemBuilder: (BuildContext context, int index) {
                         return _layoutItemAccount(index);
                       }),
@@ -265,13 +259,9 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                 GestureDetector(
                   onTap: () async {
                     context..pop()..pop();
-                    await context.push((_) =>
-                        ChangeNotifierProvider<LoginNotifier>(
-                          create: (_) =>
-                              LoginNotifier(Provider.of<MyDatabase>(context)),
-                          child: LoginScreen(),
-                        ));
-                    _mainNotifier.loadCurrentMSV();
+                    await context.push((_) => LoginScreen());
+                    context.read(mainProvider).loadCurrentMSV();
+                    context.refresh(mainProvider);
                   },
                   child: Padding(
                     padding: const EdgeInsets.only(left: 24, top: 4, bottom: 4),
@@ -303,10 +293,10 @@ class _DrawerWidgetState extends State<DrawerWidget> {
   }
 
   Widget _layoutItemAccount(int index) {
-    final Profile profile = _mainNotifier.getAllProfile[index];
+    final Profile profile = context.read(mainProvider).getAllProfile[index];
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: _mainNotifier.getRandomColor(),
+        backgroundColor: context.read(mainProvider).getRandomColor(),
         child: Text(profile?.HoTen?.substring(0, 1)?.toUpperCase()),
       ),
       title: Text(
@@ -316,36 +306,36 @@ class _DrawerWidgetState extends State<DrawerWidget> {
       subtitle: Text(profile.Lop ?? 'Lớp trống',
           style: const TextStyle(fontSize: 11)),
       onTap: () async {
-        _mainNotifier.switchToProfile(profile);
+        context.read(mainProvider).switchToProfile(profile);
         context..pop()..pop();
       },
     );
   }
 
   Widget _nameOfUser() {
-    if (_mainNotifier.getMSV == 'DTC165D4801030254') {
+    if (context.read(mainProvider).getMSV == 'DTC165D4801030254') {
       return const Text(
         'TUyenOC',
         style: TextStyle(color: Colors.white),
       );
     } else {
       return Text(
-        _mainNotifier.getName,
+        context.read(mainProvider).getName,
         style: const TextStyle(color: Colors.white),
       );
     }
   }
 
   Widget _classOfUser() {
-    if (_mainNotifier.getMSV == 'DTC165D4801030254') {
+    if (context.read(mainProvider).getMSV == 'DTC165D4801030254') {
       return const Text(
         'Tài khoản Premium',
         style: TextStyle(color: Colors.white),
       );
     } else {
-      if (_mainNotifier.getClass.isNotEmpty) {
+      if (context.read(mainProvider).getClass.isNotEmpty) {
         return Text(
-          _mainNotifier.getClass,
+          context.read(mainProvider).getClass,
           style: const TextStyle(color: Colors.white),
         );
       } else {
@@ -355,7 +345,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
   }
 
   Widget _getAccountPicture() {
-    if (_mainNotifier.isGuest) {
+    if (context.read(mainProvider).isGuest) {
       // logo for guest
       return Container(
         width: 80,
@@ -373,7 +363,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
       child: CircleAvatar(
         backgroundColor: Colors.yellow,
         child: Text(
-          _mainNotifier.getAvatarName,
+          context.read(mainProvider).getAvatarName,
           style: const TextStyle(fontSize: 35, fontWeight: FontWeight.bold),
         ),
       ),
@@ -381,7 +371,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
   }
 
   List<Widget> listItemDrawer() {
-    if (_mainNotifier.isGuest) {
+    if (context.read(mainProvider).isGuest) {
       //những menu này dành cho người chưa đăng nhập
       return [
         _drawerHeader(),
@@ -406,12 +396,6 @@ class _DrawerWidgetState extends State<DrawerWidget> {
         _settingTile()
       ];
     }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _mainNotifier = context.read<MainNotifier>();
   }
 
   @override

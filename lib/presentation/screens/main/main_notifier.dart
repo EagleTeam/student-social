@@ -1,28 +1,39 @@
 import 'dart:async';
-import 'dart:ui';
 
+import 'package:action_mixin/action_mixin.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:studentsocial/models/entities/event.dart';
-import 'package:studentsocial/models/entities/event_student_social.dart';
-import 'package:studentsocial/models/entities/login_result.dart';
-import 'package:studentsocial/services/google_calendar/calendar_service_communicate.dart';
-import 'package:studentsocial/services/google_calendar/calendar_service_model.dart';
-import 'package:studentsocial/services/local_storage/database/database.dart';
-import 'package:studentsocial/services/local_storage/database/repository/profile_repository.dart';
-import 'package:studentsocial/services/local_storage/database/repository/schedule_repository.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../events/alert.dart';
+import '../../../events/alert_update_schedule.dart';
 import '../../../helpers/logging.dart';
 import '../../../helpers/notification.dart';
+import '../../../main.dart';
+import '../../../models/entities/event_student_social.dart';
+import '../../../models/entities/login_result.dart';
 import '../../../models/entities/profile.dart';
 import '../../../models/entities/schedule.dart';
+import '../../../services/google_calendar/calendar_service_communicate.dart';
+import '../../../services/google_calendar/calendar_service_model.dart';
+import '../../../services/local_storage/database/database.dart';
+import '../../../services/local_storage/database/repository/profile_repository.dart';
+import '../../../services/local_storage/database/repository/schedule_repository.dart';
 import '../../../services/local_storage/shared_prefs.dart';
 import 'main_model.dart';
 
-class MainNotifier with ChangeNotifier {
-  MainNotifier(MyDatabase database) {
+final currentMSVProvider = StateProvider<String>((ref) {
+  return 'guest';
+});
+
+final mainProvider = ChangeNotifierProvider<MainNotifier>((ref) {
+  return MainNotifier(ref.watch(databaseProvider), ref.read);
+});
+
+class MainNotifier with ChangeNotifier, ActionMixin {
+  MainNotifier(MyDatabase database, this.read) {
     _profileRepository = ProfileRepository(database);
     _scheduleRepository = ScheduleRepository(database);
     _mainModel = MainModel();
@@ -32,8 +43,9 @@ class MainNotifier with ChangeNotifier {
     _initLoad();
   }
 
+  Reader read;
+
   MainModel _mainModel;
-  final StreamController<Events> _streamController = StreamController<Events>();
   Notification _notification;
   ProfileRepository _profileRepository;
   ScheduleRepository _scheduleRepository;
@@ -52,11 +64,8 @@ class MainNotifier with ChangeNotifier {
 
   List<Profile> get getAllProfile => _mainModel.allProfile;
 
-  DateTime get getClickedDay => _mainModel.clickDate;
-
   @override
   void dispose() {
-    _streamController.close();
     _streamResultUpload.close();
     super.dispose();
   }
@@ -65,22 +74,10 @@ class MainNotifier with ChangeNotifier {
 
   Sink get inputStreamUpload => _streamResultUpload.sink;
 
-  Stream<Events> get getStreamAction => _streamController.stream;
-
-  Sink<Events> get inputAction => _streamController.sink;
-
   String get getTitle => _mainModel.title;
 
-  double get getWidth => _mainModel.width;
-
-  double get getItemWidth => _mainModel.itemWidth;
-
-  double get getItemHeight => _mainModel.itemHeight;
-
-  double get getDrawerHeaderHeight => _mainModel.drawerHeaderHeight;
-
   String get getName {
-    if (_mainModel.msv == 'guest') {
+    if (read(currentMSVProvider).state == 'guest') {
       return 'Khách';
     }
     return _mainModel?.profile?.HoTen ?? 'Họ Tên';
@@ -92,23 +89,7 @@ class MainNotifier with ChangeNotifier {
 
   Map<String, List<Schedule>> get getEntriesOfDay => _mainModel.entriesOfDay;
 
-  double get getTableHeight => _mainModel.tableHeight;
-
-  int get getClickMonth => _mainModel.clickDate.month;
-
-  DateTime get getDateCurrentClick => _mainModel.clickDate;
-
-  String get getKeyOfCurrentEntries => _mainModel.keyOfCurrentEntries;
-
-  int get getCurrentDay => _mainModel.currentDate.day;
-
-  int get getCurrentMonth => _mainModel.currentDate.month;
-
-  int get getCurrentYear => _mainModel.currentDate.year;
-
-  int get getClickDay => _mainModel.clickDate.day;
-
-  String get getMSV => _mainModel.msv;
+  String get getMSV => read(currentMSVProvider).state;
 
   bool get isGuest =>
       getMSV == null ||
@@ -151,7 +132,7 @@ class MainNotifier with ChangeNotifier {
       return;
     }
     if (value.isNotEmpty) {
-      _mainModel.msv = value;
+      read(currentMSVProvider).state = value;
     }
     loadProfile();
     loadSchedules();
@@ -159,8 +140,7 @@ class MainNotifier with ChangeNotifier {
   }
 
   Future<void> loadProfile() async {
-    final Profile profile =
-        await _profileRepository.getUserByMaSV(_mainModel.msv);
+    final Profile profile = await _profileRepository.getUserByMaSV(getMSV);
     _mainModel.profile = profile;
     notifyListeners();
   }
@@ -173,11 +153,11 @@ class MainNotifier with ChangeNotifier {
 
   Future<void> loadSchedules() async {
     final List<Schedule> schedule =
-        await _scheduleRepository.getListSchedules(_mainModel.msv);
+        await _scheduleRepository.getListSchedules(getMSV);
     _mainModel.schedules = schedule;
     notifyListeners();
     logs('schedule is ${schedule.length}');
-    logs('msv is ${_mainModel.msv}');
+    logs('msv is ${getMSV}');
     _initEntries(schedule);
   }
 
@@ -206,8 +186,7 @@ class MainNotifier with ChangeNotifier {
     }
 
     //sau khi đã lấy được toàn bộ lịch rồi thì sẽ tiến hành đặt thông báo lịch hàng ngày.
-    _notification.initSchedulesNotification(
-        _mainModel.entriesOfDay, _mainModel.msv);
+    _notification.initSchedulesNotification(_mainModel.entriesOfDay, getMSV);
   }
 
   void updateSchedule() {
@@ -217,16 +196,11 @@ class MainNotifier with ChangeNotifier {
   Future<void> _checkInternetConnectivity() async {
     final ConnectivityResult result = await Connectivity().checkConnectivity();
     if (result == ConnectivityResult.none) {
-      inputAction.add(
-          const Events(EventType.alertMessage, 'Không có kết nối mạng :('));
+      callback(EventAlert(message: 'Không có kết nối mạng :('));
     } else if (result == ConnectivityResult.mobile ||
         result == ConnectivityResult.wifi) {
-      inputAction.add(const Events(EventType.alertUpdateSchedule));
+      callback(const EventAlertUpdateSchedule());
     }
-  }
-
-  void initSize(Size size) {
-    _mainModel.initSize(size);
   }
 
   Future<void> launchURL() async {
@@ -236,41 +210,6 @@ class MainNotifier with ChangeNotifier {
     } else {
       throw 'Could not launch $url';
     }
-  }
-
-  String getStringForKey(int i) {
-    if (i < 10) {
-      return '0$i';
-    }
-    return i.toString();
-  }
-
-  void clickedOnCurrentDay() {
-    logs(
-        'clickedOnDay ${getStringForKey(getCurrentDay)},${getStringForKey(getCurrentMonth)},$getCurrentYear from calendar_widget');
-    _mainModel.clickDate = _mainModel.currentDate;
-    notifyListeners();
-  }
-
-  void clickedOnDay(int day, int month, int year) {
-    logs(
-        'clickedOnDay ${getStringForKey(day)},${getStringForKey(month)},$year from calendar_widget');
-    _mainModel.clickDate = DateTime(year, month, day);
-    notifyListeners();
-  }
-
-  bool _isCurrentDay(int d, int m, int y) {
-    return d == getCurrentDay && m == getCurrentMonth && y == getCurrentYear;
-  }
-
-  void setClickDay(int clickDay) {
-    _mainModel.clickDate = DateTime(
-        _mainModel.clickDate.year, _mainModel.clickDate.month, clickDay);
-  }
-
-  void setClickMonth(int month) {
-    _mainModel.clickDate =
-        DateTime(_mainModel.clickDate.year, month, _mainModel.clickDate.day);
   }
 
   Future<void> logOut() async {
@@ -283,8 +222,7 @@ class MainNotifier with ChangeNotifier {
 
       //lấy ra toàn bộ user có trong máy
       profiles.removeWhere((profile) =>
-          profile.MaSinhVien ==
-          _mainModel.msv); // xoá đi user hiện tại muốn đăng xuất
+          profile.MaSinhVien == getMSV); // xoá đi user hiện tại muốn đăng xuất
       //kiểm tra nếu list vẫn còn user thì gán vào shared msv của thằng đầu tiên luôn
       //nếu không còn thằng nào thì gán vào shared '' (empty)
       if (profiles.isNotEmpty) {
@@ -294,25 +232,24 @@ class MainNotifier with ChangeNotifier {
         await _sharedPrefs.setCurrentMSV('');
       }
       //Xoá profile
-      await _profileRepository.deleteUserByMSV(_mainModel.msv);
+      await _profileRepository.deleteUserByMSV(getMSV);
       //Xoá điểm
       //TODO: Xoa diem
 //      await PlatformChannel.database.invokeMethod(
 //          PlatformChannel.removeMarkByMSV,
 //          <String, String>{'msv': _mainModel.msv});
       //Xoá lịch
-      await _scheduleRepository.deleteScheduleByMSV(_mainModel.msv);
+      await _scheduleRepository.deleteScheduleByMSV(getMSV);
       //reset data
       _mainModel.resetData();
       loadCurrentMSV();
-      inputAction
-          .add(const Events(EventType.alertMessage, 'Đăng xuất thành công'));
+      callback(EventAlert(message: 'Đăng xuất thành công'));
       notifyListeners();
     } catch (e) {
       logs('error is:$e');
       _mainModel.resetData();
       loadCurrentMSV();
-      inputAction.add(Events(EventType.alertMessage, 'Đăng xuất bị lỗi: $e'));
+      callback(EventAlert(message: 'Đăng xuất bị lỗi: $e'));
       notifyListeners();
     }
   }

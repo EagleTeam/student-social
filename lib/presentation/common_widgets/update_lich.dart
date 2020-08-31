@@ -1,11 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lazy_code/lazy_code.dart';
+import 'package:studentsocial/helpers/dialog_support.dart';
+import 'package:studentsocial/presentation/screens/main/main_notifier.dart';
 
-import '../../helpers/dialog_support.dart';
 import '../../models/entities/semester.dart';
-import '../screens/main/main_notifier.dart';
 
 class UpdateLich extends StatefulWidget {
   const UpdateLich({this.mcontext});
@@ -16,10 +17,7 @@ class UpdateLich extends StatefulWidget {
   _UpdateLichState createState() => _UpdateLichState();
 }
 
-class _UpdateLichState extends State<UpdateLich> with DialogSupport {
-  MainNotifier _mainViewModel;
-
-//  NetWorking _netWorking;
+class _UpdateLichState extends State<UpdateLich> {
   String lichHoc, lichThi;
 
   Map<String, String> subjectsName = <String, String>{};
@@ -28,8 +26,6 @@ class _UpdateLichState extends State<UpdateLich> with DialogSupport {
   @override
   void initState() {
     super.initState();
-    _mainViewModel = Provider.of<MainNotifier>(widget.mcontext);
-//    _netWorking = NetWorking();
     _loadSemester();
   }
 
@@ -55,14 +51,14 @@ class _UpdateLichState extends State<UpdateLich> with DialogSupport {
   }
 
   Future<void> loadData(String semester, String semester2) async {
-    loading(widget.mcontext, 'Đang lấy lịch học');
+    loadingMessage(widget.mcontext, 'Đang lấy lịch học');
 //    lichHoc = await _netWorking.getLichHoc(_mainViewModel.getToken,semester);
     pop(widget.mcontext);
-    loading(widget.mcontext, 'Đang lấy lịch thi');
+    loadingMessage(widget.mcontext, 'Đang lấy lịch thi');
 //    lichThi = await _netWorking.getLichThi(_mainViewModel.getToken,semester);
     pop(widget.mcontext);
     if (semester2.isNotEmpty) {
-      loading(widget.mcontext, 'Đang lấy lịch thi lại');
+      loadingMessage(widget.mcontext, 'Đang lấy lịch thi lại');
 //      lichThiLai = await _netWorking.getLichThi(_mainViewModel.getToken,semester2);
       pop(widget.mcontext);
     }
@@ -81,7 +77,7 @@ class _UpdateLichState extends State<UpdateLich> with DialogSupport {
     await removeScheduleOld();
     await saveScheduleToDB();
 //    showSuccess(widget.mcontext,'Cập nhật lịch cá nhân hoàn tất');
-    _mainViewModel.loadCurrentMSV();
+    context.read(mainProvider).loadCurrentMSV();
   }
 
   Future<void> removeScheduleOld() async {

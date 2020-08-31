@@ -1,14 +1,11 @@
-/*
- * Widget Dialog hien thi them ghi chu ^_^
- */
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
+import 'package:lazy_code/lazy_code.dart';
+import 'package:studentsocial/presentation/screens/main/main_notifier.dart';
 
-import '../../helpers/dialog_support.dart';
 import '../../helpers/logging.dart';
 import '../../models/entities/schedule.dart';
-import '../screens/main/main_notifier.dart';
 
 class AddNote extends StatefulWidget {
   const AddNote({this.date, this.context});
@@ -21,7 +18,7 @@ class AddNote extends StatefulWidget {
   _AddNoteState createState() => _AddNoteState();
 }
 
-class _AddNoteState extends State<AddNote> with DialogSupport {
+class _AddNoteState extends State<AddNote> {
   final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
   DateTime _date;
 
@@ -30,12 +27,6 @@ class _AddNoteState extends State<AddNote> with DialogSupport {
 
   //khai bao bien cho phan ghi chu
   String _title = '', _content = '';
-
-  MainNotifier _mainViewModel;
-
-  void _initViewModel() {
-    _mainViewModel = Provider.of<MainNotifier>(widget.context);
-  }
 
   @override
   void initState() {
@@ -50,7 +41,7 @@ class _AddNoteState extends State<AddNote> with DialogSupport {
     if (formKey.currentState.validate()) {
       formKey.currentState.save();
       final Schedule note = Schedule.forNote(
-          _mainViewModel.getMSV,
+          context.read(mainProvider).getMSV,
           _title == '' ? 'Tiêu đề' : _title,
           _content == '' ? 'Nội dung' : _content,
           dateFormat.format(_date));
@@ -59,7 +50,7 @@ class _AddNoteState extends State<AddNote> with DialogSupport {
 //        String value = await PlatformChannel.database.invokeMethod(
 //            PlatformChannel.addNote, <String, String>{'note': schedule});
 //        print('add note :$value');
-        _mainViewModel.loadCurrentMSV();
+        context.read(mainProvider).loadCurrentMSV();
       } catch (e) {
         logs('add note: $e');
       }
@@ -147,8 +138,6 @@ class _AddNoteState extends State<AddNote> with DialogSupport {
 
   @override
   Widget build(BuildContext context) {
-    _initViewModel();
-
     return AlertDialog(
       title: const Text('Thêm lịch cá nhân'),
       content: Form(

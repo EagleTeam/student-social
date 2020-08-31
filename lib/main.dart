@@ -6,19 +6,16 @@ import 'package:syncfusion_flutter_core/core.dart';
 
 import 'config/strings.dart';
 import 'presentation/screens/main/main.dart';
-import 'presentation/screens/main/main_notifier.dart';
 import 'services/local_storage/database/database.dart';
 
 final databaseProvider = Provider<MyDatabase>((ref) {
   return MyDatabase.instance;
 });
-final mainProvider = ChangeNotifierProvider<MainNotifier>((ref) {
-  return MainNotifier(ref.watch(databaseProvider));
-});
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   //Register your license here
+  // Note: this is my license key for open source
   SyncfusionLicense.registerLicense(
       'NT8mJyc2IWhia31hfWN9Z2doYmF8YGJ8ampqanNiYmlmamlmanMDHmgnMT5qa303NiUTND4yOj99MDw+');
   runApp(ProviderScope(child: MyApp()));
