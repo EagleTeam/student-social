@@ -3,139 +3,87 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lazy_code/lazy_code.dart';
 
 import '../../../models/entities/profile.dart';
-import '../extracurricular/extracurricular.dart';
 import '../login/login.dart';
-import '../mark/mark.dart';
-import '../qr/qrcode_view.dart';
-import '../settings.dart';
-import '../time_table.dart';
 import 'main_notifier.dart';
 
 class DrawerWidget extends StatefulWidget {
+  const DrawerWidget(
+      {this.loginTap,
+      this.timeTableTap,
+      this.markTap,
+      this.extracurricularTap,
+      this.qrCodeTap,
+      this.supportTap,
+      this.settingTap,
+      this.logoutTap});
+
+  final VoidCallback loginTap;
+  final VoidCallback timeTableTap;
+  final VoidCallback markTap;
+  final VoidCallback extracurricularTap;
+  final VoidCallback qrCodeTap;
+  final VoidCallback supportTap;
+  final VoidCallback settingTap;
+  final VoidCallback logoutTap;
+
   @override
   _DrawerWidgetState createState() => _DrawerWidgetState();
 }
 
 class _DrawerWidgetState extends State<DrawerWidget> {
   Widget _loginTile() {
-    return ListTile(
-      title: const Text('Đăng nhập bằng tài khoản sinh viên'),
-      leading: const Icon(
-        Icons.account_circle,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () async {
-        context.pop();
-        await context.push((BuildContext context) => LoginScreen());
-        context.read(mainProvider).loadCurrentMSV();
-        context.refresh(mainProvider);
-      },
+    return _Tile(
+      title: 'Đăng nhập bằng tài khoản sinh viên',
+      icon: Icons.account_circle,
+      onTap: widget.loginTap,
     );
   }
 
   Widget _timeTableTile() {
-    return ListTile(
-      title: const Text('Thời gian ra vào lớp'),
-      leading: const Icon(
-        Icons.access_time,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () {
-        context
-          ..pop()
-          ..push((_) => TimeTable(msv: context.read(mainProvider).getMSV));
-      },
+    return _Tile(
+      title: 'Thời gian ra vào lớp',
+      icon: Icons.access_time,
+      onTap: widget.timeTableTap,
     );
   }
 
   Widget _markTile() {
-    return ListTile(
-      title: const Text('Tra cứu điểm'),
-      leading: const Icon(
-        Icons.assessment,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () {
-        Navigator.of(context).pop();
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => MarkScreen(),
-        ));
-      },
+    return _Tile(
+      title: 'Tra cứu điểm',
+      icon: Icons.assessment,
+      onTap: widget.markTap,
     );
   }
 
   Widget _extracurricularTile() {
-    return ListTile(
-      title: const Text('Tra cứu điểm ngoại khóa'),
-      leading: const Icon(
-        Icons.assistant_photo,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () {
-        context
-          ..pop()
-          ..push(
-            (_) => ExtracurricularScreen(
-              msv: context.read(mainProvider).getMSV,
-            ),
-          );
-      },
+    return _Tile(
+      title: 'Tra cứu điểm ngoại khóa',
+      icon: Icons.assistant_photo,
+      onTap: widget.extracurricularTap,
     );
   }
 
   Widget _QRCodeTile() {
-    return ListTile(
-      title: const Text('Tạo QR CODE'),
-      leading: const Icon(
-        Icons.blur_on,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () {
-        Navigator.of(context).pop();
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (BuildContext context) => QRCodeScreen(
-                data: context.read(mainProvider).getMSV,
-              ),
-            ));
-      },
+    return _Tile(
+      title: 'Tạo QR CODE',
+      icon: Icons.blur_on,
+      onTap: widget.qrCodeTap,
     );
   }
 
   Widget _supportTile() {
-    return ListTile(
-      title: const Text('Phản ánh lỗi, góp ý'),
-      leading: const Icon(
-        Icons.error,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () {
-        context.pop();
-        context.read(mainProvider).launchURL();
-      },
+    return _Tile(
+      title: 'Phản ánh lỗi, góp ý',
+      icon: Icons.error,
+      onTap: widget.supportTap,
     );
   }
 
   Widget _settingTile() {
-    return ListTile(
-      title: const Text('Cài đặt ứng dụng'),
-      leading: const Icon(
-        Icons.settings,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () {
-        context
-          ..pop()
-          ..push(((_) => SettingScren()));
-      },
+    return _Tile(
+      title: 'Cài đặt ứng dụng',
+      icon: Icons.settings,
+      onTap: widget.settingTap,
     );
   }
 
@@ -150,40 +98,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
           color: Colors.grey,
         ),
       ),
-      onTap: () {
-        Navigator.of(context).pop();
-        _confirmLogout();
-      },
-    );
-  }
-
-  Future<void> _confirmLogout() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: true, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Bạn có muốn đăng xuất không?'),
-          actions: <Widget>[
-            FlatButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'Huỷ',
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-            FlatButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                context.read(mainProvider).logOut();
-              },
-              child: const Text('Đồng ý'),
-            )
-          ],
-        );
-      },
+      onTap: widget.logoutTap,
     );
   }
 
@@ -407,10 +322,10 @@ class _Tile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(title),
-      leading: const Icon(
-        Icons.error,
+      leading: Icon(
+        icon,
         size: 30,
-        color: Colors.green,
+        color: colorIcon,
       ),
       onTap: () {
         context.pop();

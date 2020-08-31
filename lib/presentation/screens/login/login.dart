@@ -26,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _initActions();
+    context.read(loginProvider).initActions(actions());
   }
 
   List<ActionEntry> actions() {
@@ -61,10 +61,6 @@ class _LoginScreenState extends State<LoginScreen> {
             }
           }),
     ];
-  }
-
-  void _initActions() {
-    context.read(loginProvider).initActions(actions());
   }
 
   Future<void> saveSuccess() async {

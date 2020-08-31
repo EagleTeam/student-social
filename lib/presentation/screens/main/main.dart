@@ -5,6 +5,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lazy_code/lazy_code.dart';
+import 'package:studentsocial/presentation/screens/extracurricular/extracurricular.dart';
+import 'package:studentsocial/presentation/screens/login/login.dart';
+import 'package:studentsocial/presentation/screens/mark/mark.dart';
+import 'package:studentsocial/presentation/screens/qr/qrcode_view.dart';
 
 import '../../../events/alert.dart';
 import '../../../events/alert_update_schedule.dart';
@@ -16,6 +20,8 @@ import '../../common_widgets/add_note.dart';
 import '../../common_widgets/calendar.dart';
 import '../../common_widgets/circle_loading.dart';
 import '../../common_widgets/update_lich.dart';
+import '../settings.dart';
+import '../time_table.dart';
 import 'drawer.dart';
 import 'main_notifier.dart';
 
@@ -52,13 +58,94 @@ class MainScreenState extends State<MainScreen> {
           );
         },
       ),
-      drawer: DrawerWidget(),
+      drawer: DrawerWidget(
+          loginTap: loginTap,
+          timeTableTap: timeTableTap,
+          markTap: markTap,
+          extracurricularTap: extracurricularTap,
+          qrCodeTap: qrCodeTap,
+          supportTap: supportTap,
+          settingTap: settingTap),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _showDialogAddGhiChu();
         },
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  // action for tile
+
+  Future<void> loginTap() async {
+    await context.push((BuildContext context) => LoginScreen());
+    context.read(mainProvider).loadCurrentMSV();
+    context.refresh(mainProvider);
+  }
+
+  Future<void> timeTableTap() async {
+    context.push((_) => TimeTable(msv: context.read(mainProvider).getMSV));
+  }
+
+  void markTap() {
+    context.push((_) => MarkScreen());
+  }
+
+  void extracurricularTap() {
+    context.push(
+      (_) => ExtracurricularScreen(
+        msv: context.read(mainProvider).getMSV,
+      ),
+    );
+  }
+
+  void qrCodeTap() {
+    context.push((BuildContext context) => QRCodeScreen(
+          data: context.read(mainProvider).getMSV,
+        ));
+  }
+
+  void supportTap() {
+    context.read(mainProvider).launchURL();
+  }
+
+  void settingTap() {
+    context.push(((_) => SettingScren()));
+  }
+
+  void logoutTap() {
+    _confirmLogout();
+  }
+
+  // done
+
+  Future<void> _confirmLogout() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true, // user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Bạn có muốn đăng xuất không?'),
+          actions: <Widget>[
+            FlatButton(
+              onPressed: () {
+                context.pop();
+              },
+              child: const Text(
+                'Huỷ',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+            FlatButton(
+              onPressed: () {
+                context.pop();
+                context.read(mainProvider).logOut();
+              },
+              child: const Text('Đồng ý'),
+            )
+          ],
+        );
+      },
     );
   }
 

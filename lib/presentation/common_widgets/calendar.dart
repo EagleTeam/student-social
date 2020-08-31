@@ -136,13 +136,6 @@ class ListScheduleWidget extends StatelessWidget {
     );
   }
 
-  bool isCurrentDay() {
-    final DateTime now = DateTime.now();
-    return now.year == date.year &&
-        now.month == date.month &&
-        now.day == date.day;
-  }
-
   Widget dateTitle(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8),
