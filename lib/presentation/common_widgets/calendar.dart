@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:studentsocial/helpers/viet_calendar.dart';
 import 'package:studentsocial/models/entities/schedule.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+
+final vietCalendar = VietCalendar();
 
 class CalendarWidget extends StatefulWidget {
   const CalendarWidget({this.schedules, this.onTap});
@@ -74,12 +75,6 @@ class ListScheduleWidget extends StatelessWidget {
   final DateTime date;
   final List<Schedule> schedules;
   List<Schedule> _appointments = [];
-
-  String titleDay(BuildContext context) {
-    final DateFormat format =
-        DateFormat('EEE', Localizations.localeOf(context).languageCode);
-    return format.format(date);
-  }
 
   Widget itemSchedule(int index) {
     if (_appointments[index].LoaiLich == 'LichHoc') {
@@ -153,21 +148,10 @@ class ListScheduleWidget extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       child: currentDateTitle(context),
     );
-    if (isCurrentDay()) {
-      return Padding(
-        padding: const EdgeInsets.all(8),
-        child: currentDateTitle(context),
-      );
-    } else {
-      return Padding(
-        padding: const EdgeInsets.all(8),
-        child: normalDateTitle(context),
-      );
-    }
   }
 
   Widget currentDateTitle(BuildContext context) {
-    final al = VietCalendar().lichAm(date.day, date.month, date.year);
+    final al = vietCalendar.lichAm(date.day, date.month, date.year);
     return Column(
       children: [
         const Text(
@@ -185,22 +169,6 @@ class ListScheduleWidget extends StatelessWidget {
             style: const TextStyle(
                 fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget normalDateTitle(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          titleDay(context),
-          style: const TextStyle(color: Colors.grey),
-        ),
-        Text(
-          date.day.toString(),
-          style: const TextStyle(
-              fontWeight: FontWeight.bold, fontSize: 20, color: Colors.grey),
         ),
       ],
     );

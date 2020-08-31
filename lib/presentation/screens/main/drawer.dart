@@ -87,7 +87,6 @@ class _DrawerWidgetState extends State<DrawerWidget> {
     );
   }
 
-  // ignore: non_constant_identifier_names
   Widget _QRCodeTile() {
     return ListTile(
       title: const Text('Tạo QR CODE'),
@@ -313,35 +312,20 @@ class _DrawerWidgetState extends State<DrawerWidget> {
   }
 
   Widget _nameOfUser() {
-    if (context.read(mainProvider).getMSV == 'DTC165D4801030254') {
-      return const Text(
-        'TUyenOC',
-        style: TextStyle(color: Colors.white),
-      );
-    } else {
-      return Text(
-        context.read(mainProvider).getName,
-        style: const TextStyle(color: Colors.white),
-      );
-    }
+    return Text(
+      context.read(mainProvider).getName,
+      style: const TextStyle(color: Colors.white),
+    );
   }
 
   Widget _classOfUser() {
-    if (context.read(mainProvider).getMSV == 'DTC165D4801030254') {
-      return const Text(
-        'Tài khoản Premium',
-        style: TextStyle(color: Colors.white),
+    if (context.read(mainProvider).getClass.isNotEmpty) {
+      return Text(
+        context.read(mainProvider).getClass,
+        style: const TextStyle(color: Colors.white),
       );
-    } else {
-      if (context.read(mainProvider).getClass.isNotEmpty) {
-        return Text(
-          context.read(mainProvider).getClass,
-          style: const TextStyle(color: Colors.white),
-        );
-      } else {
-        return const SizedBox();
-      }
     }
+    return const SizedBox();
   }
 
   Widget _getAccountPicture() {
@@ -402,6 +386,36 @@ class _DrawerWidgetState extends State<DrawerWidget> {
   Widget build(BuildContext context) {
     return Drawer(
       child: ListView(padding: EdgeInsets.zero, children: listItemDrawer()),
+    );
+  }
+}
+
+class _Tile extends StatelessWidget {
+  const _Tile({
+    this.title,
+    this.icon,
+    this.colorIcon = Colors.green,
+    this.onTap,
+  });
+
+  final String title;
+  final IconData icon;
+  final Color colorIcon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(title),
+      leading: const Icon(
+        Icons.error,
+        size: 30,
+        color: Colors.green,
+      ),
+      onTap: () {
+        context.pop();
+        onTap?.call();
+      },
     );
   }
 }
