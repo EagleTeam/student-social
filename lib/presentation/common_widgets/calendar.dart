@@ -165,9 +165,13 @@ class ListScheduleWidget extends StatelessWidget {
             borderRadius: BorderRadius.circular(2),
           ),
           child: Text(
-            '${al[0]}/${al[1]}',
+            '${al[0]}/${al[1]}\n${al[2]}',
             style: const TextStyle(
-                fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
           ),
         ),
       ],
