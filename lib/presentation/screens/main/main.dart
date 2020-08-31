@@ -5,10 +5,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lazy_code/lazy_code.dart';
-import 'package:studentsocial/presentation/screens/extracurricular/extracurricular.dart';
-import 'package:studentsocial/presentation/screens/login/login.dart';
-import 'package:studentsocial/presentation/screens/mark/mark.dart';
-import 'package:studentsocial/presentation/screens/qr/qrcode_view.dart';
 
 import '../../../events/alert.dart';
 import '../../../events/alert_update_schedule.dart';
@@ -20,6 +16,10 @@ import '../../common_widgets/add_note.dart';
 import '../../common_widgets/calendar.dart';
 import '../../common_widgets/circle_loading.dart';
 import '../../common_widgets/update_lich.dart';
+import '../extracurricular/extracurricular.dart';
+import '../login/login.dart';
+import '../mark/mark.dart';
+import '../qr/qrcode_view.dart';
 import '../settings.dart';
 import '../time_table.dart';
 import 'drawer.dart';
@@ -34,7 +34,7 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    _initActions();
+    context.read(mainProvider).initActions(_actions());
   }
 
   @override
@@ -59,13 +59,15 @@ class MainScreenState extends State<MainScreen> {
         },
       ),
       drawer: DrawerWidget(
-          loginTap: loginTap,
-          timeTableTap: timeTableTap,
-          markTap: markTap,
-          extracurricularTap: extracurricularTap,
-          qrCodeTap: qrCodeTap,
-          supportTap: supportTap,
-          settingTap: settingTap),
+        loginTap: _loginTap,
+        timeTableTap: _timeTableTap,
+        markTap: _markTap,
+        extracurricularTap: _extracurricularTap,
+        qrCodeTap: _qrCodeTap,
+        supportTap: _supportTap,
+        settingTap: _settingTap,
+        logoutTap: _logoutTap,
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _showDialogAddGhiChu();
@@ -77,21 +79,22 @@ class MainScreenState extends State<MainScreen> {
 
   // action for tile
 
-  Future<void> loginTap() async {
-    await context.push((BuildContext context) => LoginScreen());
-    context.read(mainProvider).loadCurrentMSV();
+  Future<void> _loginTap() async {
+    await context.push((_) => LoginScreen());
+    await context.read(mainProvider).loadCurrentMSV();
     context.refresh(mainProvider);
   }
 
-  Future<void> timeTableTap() async {
-    context.push((_) => TimeTable(msv: context.read(mainProvider).getMSV));
+  Future<void> _timeTableTap() async {
+    await context
+        .push((_) => TimeTable(msv: context.read(mainProvider).getMSV));
   }
 
-  void markTap() {
+  void _markTap() {
     context.push((_) => MarkScreen());
   }
 
-  void extracurricularTap() {
+  void _extracurricularTap() {
     context.push(
       (_) => ExtracurricularScreen(
         msv: context.read(mainProvider).getMSV,
@@ -99,21 +102,21 @@ class MainScreenState extends State<MainScreen> {
     );
   }
 
-  void qrCodeTap() {
-    context.push((BuildContext context) => QRCodeScreen(
+  void _qrCodeTap() {
+    context.push((context) => QRCodeScreen(
           data: context.read(mainProvider).getMSV,
         ));
   }
 
-  void supportTap() {
+  void _supportTap() {
     context.read(mainProvider).launchURL();
   }
 
-  void settingTap() {
+  void _settingTap() {
     context.push(((_) => SettingScren()));
   }
 
-  void logoutTap() {
+  void _logoutTap() {
     _confirmLogout();
   }
 
@@ -123,7 +126,7 @@ class MainScreenState extends State<MainScreen> {
     return showDialog<void>(
       context: context,
       barrierDismissible: true, // user must tap button!
-      builder: (BuildContext context) {
+      builder: (context) {
         return AlertDialog(
           title: const Text('Bạn có muốn đăng xuất không?'),
           actions: <Widget>[
@@ -152,18 +155,18 @@ class MainScreenState extends State<MainScreen> {
   Widget get _uploadScheduleButton {
     return Consumer(
         builder: (ctx, watch, child) {
-          final bool isGuest = watch(mainProvider).isGuest;
+          final isGuest = watch(mainProvider).isGuest;
           if (isGuest) {
             return const SizedBox();
           }
           return child;
         },
         child: IconButton(
-            onPressed: uploadScheduleClicked,
+            onPressed: _uploadScheduleClicked,
             icon: const Icon(Icons.cloud_upload)));
   }
 
-  List<ActionEntry> actions() {
+  List<ActionEntry> _actions() {
     return [
       ActionEntry(event: const EventPop(), action: (_) => pop(context)),
       ActionEntry(
@@ -180,19 +183,15 @@ class MainScreenState extends State<MainScreen> {
     ];
   }
 
-  void _initActions() {
-    context.read(mainProvider).initActions(actions());
-  }
-
-  Future<void> uploadScheduleClicked() async {
+  Future<void> _uploadScheduleClicked() async {
     final loginResult = await context.read(mainProvider).googleLogin();
-    logs(loginResult.firebaseUser.photoUrl);
-    showGoogleInfo(loginResult);
+    logs(loginResult.firebaseUser.photoURL);
+    _showGoogleInfo(loginResult);
   }
 
-  void showUploadProcessing() async {
+  Future<void> _showUploadProcessing() async {
     final events = await context.read(mainProvider).getEventStudentSocials();
-    showDialog(
+    await showDialog(
         context: context,
         barrierDismissible: false, // Khong duoc an dialog
         builder: (ct) {
@@ -244,8 +243,8 @@ class MainScreenState extends State<MainScreen> {
                     } else {
                       return Column(
                         mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Center(child: CircularProgressIndicator()),
+                        children: const [
+                          Center(child: CircularProgressIndicator()),
                         ],
                       );
                     }
@@ -255,7 +254,7 @@ class MainScreenState extends State<MainScreen> {
         });
   }
 
-  void showGoogleInfo(LoginResult loginResult) {
+  void _showGoogleInfo(LoginResult loginResult) {
     showDialog(
         context: context,
         builder: (ct) {
@@ -271,7 +270,7 @@ class MainScreenState extends State<MainScreen> {
                     borderRadius: BorderRadius.circular(
                         MediaQuery.of(context).size.width * 0.2),
                     child: CachedNetworkImage(
-                      imageUrl: loginResult.firebaseUser.photoUrl,
+                      imageUrl: loginResult.firebaseUser.photoURL,
                       width: MediaQuery.of(context).size.width * 0.2,
                       height: MediaQuery.of(context).size.width * 0.2,
                       placeholder: (_, __) {
@@ -293,9 +292,9 @@ class MainScreenState extends State<MainScreen> {
                       ),
                       IconButton(
                         onPressed: () async {
-                          context.read(mainProvider).googleLogout();
+                          await context.read(mainProvider).googleLogout();
                           pop(ct);
-                          uploadScheduleClicked();
+                          await _uploadScheduleClicked();
                         },
                         icon: const Icon(Icons.refresh),
                       )
@@ -304,7 +303,7 @@ class MainScreenState extends State<MainScreen> {
                   OutlineButton(
                     onPressed: () {
                       Navigator.of(ct).pop();
-                      showUploadProcessing();
+                      _showUploadProcessing();
                     },
                     child: const Text('Tải lên Google Calendar'),
                   ),
@@ -348,19 +347,6 @@ class MainScreenState extends State<MainScreen> {
     );
   }
 
-  Future<void> _showDialogAddGhiChu() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
-        return AddNote(
-          // date: context.read(mainProvider).getClickedDay,
-          context: this.context,
-        ); //magic ^_^
-      },
-    );
-  }
-
   /*
    * show dialog khi bao vao update lich
    */
@@ -369,7 +355,7 @@ class MainScreenState extends State<MainScreen> {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
+      builder: (context) {
         return UpdateLich(
           mcontext: this.context,
         ); //magic ^_^
@@ -380,15 +366,15 @@ class MainScreenState extends State<MainScreen> {
   /*
    * show dialog khi bam vao them ghi chu
    */
-
-  Future<void> showDialogAddGhiChu() async {
+  Future<void> _showDialogAddGhiChu() async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false, // user must tap button!
-      builder: (BuildContext context) {
+      builder: (context) {
         return AddNote(
-//          date: _mainViewModel.getDate,
-            ); //magic ^_^
+          // date: context.read(mainProvider).getClickedDay,
+          context: this.context,
+        ); //magic ^_^
       },
     );
   }
