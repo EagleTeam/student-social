@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:lazy_code/lazy_code.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class QRCodeScreen extends StatefulWidget {
@@ -21,7 +22,7 @@ class QRCodeScreen extends StatefulWidget {
 
 class _QRCodeScreenState extends State<QRCodeScreen> {
   String _data;
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -38,24 +39,18 @@ class _QRCodeScreenState extends State<QRCodeScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: <Widget>[
-            LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                double w = MediaQuery.of(context).size.width;
-                return Hero(
-                  tag: 'button_current_day',
-                  child: SizedBox(
-                    width: w,
-                    height: w,
-                    child: Padding(
-                        padding: widget.padding,
-                        child: QrImage(
-                          data: _data,
-                          version: QrVersions.auto,
-                          size: 200.0,
-                        )),
-                  ),
-                );
-              },
+            AspectRatio(
+              aspectRatio: 1,
+              child: WidthOfScreen(
+                percent: 100,
+                child: Padding(
+                    padding: widget.padding,
+                    child: QrImage(
+                      data: _data,
+                      version: QrVersions.auto,
+                      size: 200,
+                    )),
+              ),
             ),
             Container(
               padding: const EdgeInsets.only(top: 8, left: 16, right: 16),
@@ -64,16 +59,16 @@ class _QRCodeScreenState extends State<QRCodeScreen> {
                 children: <Widget>[
                   Expanded(
                     child: Form(
-                      key: formKey,
+                      key: _formKey,
                       child: TextFormField(
                         style: const TextStyle(color: Colors.green),
-                        validator: (String value) {
+                        validator: (value) {
                           if (value.isEmpty) {
                             return 'Trống';
                           }
                           return null;
                         },
-                        onSaved: (String value) {
+                        onSaved: (value) {
                           setState(() {
                             _data = value;
                           });
@@ -82,7 +77,8 @@ class _QRCodeScreenState extends State<QRCodeScreen> {
                             hintText: 'Nhập nội dung cần tạo',
                             labelText: 'Tạo QR Code',
                             border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8)),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                             suffixIcon: IconButton(
                               icon: const Icon(
                                 Icons.check_circle,
@@ -90,8 +86,8 @@ class _QRCodeScreenState extends State<QRCodeScreen> {
                                 size: 32,
                               ),
                               onPressed: () {
-                                if (formKey.currentState.validate()) {
-                                  formKey.currentState.save();
+                                if (_formKey.currentState.validate()) {
+                                  _formKey.currentState.save();
                                 }
                               },
                             )),

@@ -1,11 +1,11 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-import '../models/entities/schedule.dart';
-import 'date.dart';
-import 'logging.dart';
+import '../../helpers/date.dart';
+import '../../helpers/logging.dart';
+import '../../models/entities/schedule.dart';
 
-class Notification {
-  Notification() {
+class NotificationConfig {
+  NotificationConfig() {
     init();
     //TODO('nhảy đến đúng ngày khi bấm vào notifi')
   }

@@ -98,7 +98,10 @@ class _DrawerWidgetState extends State<DrawerWidget> {
           color: Colors.grey,
         ),
       ),
-      onTap: widget.logoutTap,
+      onTap: () {
+        context.pop();
+        widget.logoutTap();
+      },
     );
   }
 
@@ -210,7 +213,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
     final Profile profile = context.read(mainProvider).getAllProfile[index];
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: context.read(mainProvider).getRandomColor(),
+        backgroundColor: Colors.green,
         child: Text(profile?.HoTen?.substring(0, 1)?.toUpperCase()),
       ),
       title: Text(

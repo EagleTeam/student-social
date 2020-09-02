@@ -37,6 +37,23 @@ class MainScreenState extends State<MainScreen> {
     context.read(mainProvider).initActions(_actions());
   }
 
+  List<ActionEntry> _actions() {
+    return [
+      ActionEntry(event: const EventPop(), action: (_) => pop(context)),
+      ActionEntry(
+          event: const EventAlertUpdateSchedule(),
+          action: (_) => _showDialogUpdateLich()),
+      ActionEntry(
+          event: const EventAlert(),
+          action: (event) {
+            if (event is EventAlert) {
+              showAlertMessage(context, event.message);
+              setState(() {});
+            }
+          }),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,7 +94,7 @@ class MainScreenState extends State<MainScreen> {
     );
   }
 
-  // action for tile
+  // **************** action for tile
 
   Future<void> _loginTap() async {
     await context.push((_) => LoginScreen());
@@ -103,9 +120,11 @@ class MainScreenState extends State<MainScreen> {
   }
 
   void _qrCodeTap() {
-    context.push((context) => QRCodeScreen(
-          data: context.read(mainProvider).getMSV,
-        ));
+    context.push(
+      (context) => QRCodeScreen(
+        data: context.read(mainProvider).getMSV,
+      ),
+    );
   }
 
   void _supportTap() {
@@ -120,7 +139,7 @@ class MainScreenState extends State<MainScreen> {
     _confirmLogout();
   }
 
-  // done
+  // ****************** done
 
   Future<void> _confirmLogout() async {
     return showDialog<void>(
@@ -164,23 +183,6 @@ class MainScreenState extends State<MainScreen> {
         child: IconButton(
             onPressed: _uploadScheduleClicked,
             icon: const Icon(Icons.cloud_upload)));
-  }
-
-  List<ActionEntry> _actions() {
-    return [
-      ActionEntry(event: const EventPop(), action: (_) => pop(context)),
-      ActionEntry(
-          event: const EventAlertUpdateSchedule(),
-          action: (_) => _showDialogUpdateLich()),
-      ActionEntry(
-          event: const EventAlert(),
-          action: (event) {
-            if (event is EventAlert) {
-              showAlertMessage(context, event.message);
-              setState(() {});
-            }
-          }),
-    ];
   }
 
   Future<void> _uploadScheduleClicked() async {

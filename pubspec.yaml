@@ -42,7 +42,7 @@ dependencies:
   # for state management
   state_notifier: ^0.6.0
   # new version of provider
-  flutter_riverpod: ^0.8.0
+  flutter_riverpod: ^0.9.1
   action_mixin: ^0.1.1+1
 
   # for notification schedule

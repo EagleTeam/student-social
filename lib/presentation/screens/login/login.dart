@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lazy_code/lazy_code.dart';
-import 'package:studentsocial/events/alert.dart';
-import 'package:studentsocial/events/alert_chon_kyhoc.dart';
-import 'package:studentsocial/events/loading_message.dart';
-import 'package:studentsocial/events/pop.dart';
-import 'package:studentsocial/events/save_success.dart';
 
+import '../../../events/alert.dart';
+import '../../../events/alert_chon_kyhoc.dart';
+import '../../../events/loading_message.dart';
+import '../../../events/pop.dart';
+import '../../../events/save_success.dart';
 import '../../../helpers/dialog_support.dart';
 import '../../../models/entities/semester.dart';
 import 'login_notifier.dart';
@@ -75,52 +75,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget email() {
     return TextField(
-      controller: controllerEmail,
-      autofocus: true,
-      textCapitalization: TextCapitalization.characters,
-      onSubmitted: (String value) {
-        FocusScope.of(context).requestFocus(textSecondFocusNode);
-      },
-      decoration: InputDecoration(
-        hintText: 'Mã sinh viên',
-        labelText: 'Mã sinh viên',
-        prefixIcon: const Icon(Icons.account_circle),
-        suffixIcon: IconButton(
-            icon: const Icon(Icons.check_circle),
-            onPressed: () {
-              FocusScope.of(context).requestFocus(textSecondFocusNode);
-            }),
-        contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+        controller: controllerEmail,
+        autofocus: true,
+        textCapitalization: TextCapitalization.characters,
+        onSubmitted: (value) {
+          FocusScope.of(context).requestFocus(textSecondFocusNode);
+        },
+        decoration: _Decoration(
+          label: 'Mã sinh viên',
+          prefixIcon: const Icon(Icons.account_circle),
+        ));
   }
 
   Widget password() {
     return TextField(
-      focusNode: textSecondFocusNode,
-      controller: controllerPassword,
-      obscureText: true,
-      onSubmitted: (String value) {
-        context
-            .read(loginProvider)
-            .submit(controllerEmail.text, controllerPassword.text);
-      },
-      decoration: InputDecoration(
-        hintText: 'Mật khẩu',
-        labelText: 'Mật khẩu',
-        prefixIcon: const Icon(Icons.lock),
-        suffixIcon: IconButton(
-            icon: const Icon(Icons.check_circle),
-            onPressed: () {
-              context
-                  .read(loginProvider)
-                  .submit(controllerEmail.text, controllerPassword.text);
-            }),
-        contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
+        focusNode: textSecondFocusNode,
+        controller: controllerPassword,
+        obscureText: true,
+        onSubmitted: (value) => _submit(),
+        decoration: _Decoration(
+          label: 'Mật khẩu',
+          prefixIcon: const Icon(Icons.lock),
+        ));
   }
 
   Widget loginButton() {
@@ -140,11 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
           padding: const EdgeInsets.all(0),
           alignment: Alignment.topRight,
           child: RaisedButton(
-            onPressed: () {
-              context
-                  .read(loginProvider)
-                  .submit(controllerEmail.text, controllerPassword.text);
-            },
+            onPressed: _submit,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             color: Colors.green,
@@ -185,6 +157,12 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  void _submit() {
+    context
+        .read(loginProvider)
+        .submit(controllerEmail.text, controllerPassword.text);
+  }
+
   Widget _itemKyHoc(BuildContext context, Semester data) {
     return Container(
         margin: const EdgeInsets.only(bottom: 5),
@@ -210,11 +188,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showAlertChonKyHoc(SemesterResult data) {
-    final AlertDialog alertDialog = AlertDialog(
+    final alertDialog = AlertDialog(
       title: const Text('Chọn kỳ học'),
-      content: Container(
-        width: MediaQuery.of(context).size.width * 0.8,
-        height: MediaQuery.of(context).size.height * 0.5,
+      content: BoxOfScreen(
+        widthPercent: 80,
+        heightPercent: 50,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -232,4 +210,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
     showDialog(context: context, builder: (_) => alertDialog);
   }
+}
+
+class _Decoration extends InputDecoration {
+  _Decoration({String label, Widget prefixIcon})
+      : super(
+          labelText: label,
+          prefixIcon: prefixIcon,
+          contentPadding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        );
 }

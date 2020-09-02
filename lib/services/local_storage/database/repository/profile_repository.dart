@@ -1,7 +1,14 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:studentsocial/main.dart';
 import 'package:studentsocial/models/entities/profile.dart';
 
 import '../database.dart';
 import '../profile_dao.dart';
+
+/// provider profileRepository by watch databaseProvider
+final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
+  return ProfileRepository(ref.watch(databaseProvider));
+});
 
 class ProfileRepository {
   ProfileRepository(MyDatabase database) {
@@ -26,7 +33,7 @@ class ProfileRepository {
     return profileDao.updateOnlyUser(user);
   }
 
-  Future<Profile> getUserByMaSV(String msv) async {
+  Future<Profile> getUserByMSV(String msv) async {
     return await profileDao.getUserByMSV(msv);
   }
 

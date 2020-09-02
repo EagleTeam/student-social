@@ -1,8 +1,14 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:studentsocial/main.dart';
 import 'package:studentsocial/models/entities/schedule.dart';
 
 import '../database.dart';
 import '../schedule_dao.dart';
+
+final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
+  return ScheduleRepository(ref.watch(databaseProvider));
+});
 
 class ScheduleRepository {
   ScheduleRepository(MyDatabase database) {

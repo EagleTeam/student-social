@@ -10,49 +10,46 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../events/alert.dart';
 import '../../../events/alert_update_schedule.dart';
 import '../../../helpers/logging.dart';
-import '../../../helpers/notification.dart';
-import '../../../main.dart';
 import '../../../models/entities/event_student_social.dart';
 import '../../../models/entities/login_result.dart';
 import '../../../models/entities/profile.dart';
 import '../../../models/entities/schedule.dart';
 import '../../../services/google_calendar/calendar_service_communicate.dart';
 import '../../../services/google_calendar/calendar_service_model.dart';
-import '../../../services/local_storage/database/database.dart';
 import '../../../services/local_storage/database/repository/profile_repository.dart';
 import '../../../services/local_storage/database/repository/schedule_repository.dart';
 import '../../../services/local_storage/shared_prefs.dart';
+import '../../../services/notification/notification.dart';
 import 'main_model.dart';
 
+/// provider current msv
 final currentMSVProvider = StateProvider<String>((ref) {
   return 'guest';
 });
 
+/// provider mainNotifier
 final mainProvider = ChangeNotifierProvider<MainNotifier>((ref) {
-  return MainNotifier(ref.watch(databaseProvider), ref.read);
+  return MainNotifier(ref);
 });
 
 class MainNotifier with ChangeNotifier, ActionMixin {
-  MainNotifier(MyDatabase database, this.read) {
-    _profileRepository = ProfileRepository(database);
-    _scheduleRepository = ScheduleRepository(database);
+  MainNotifier(this.ref) {
+    _profileRepository = ref.watch(profileRepositoryProvider);
+    _scheduleRepository = ref.watch(scheduleRepositoryProvider);
     _mainModel = MainModel();
-    _notification = Notification();
-    _sharedPrefs = SharedPrefs();
+    _notification = NotificationConfig();
     _calendarServiceModel = CalendarServiceModel();
     _initLoad();
   }
 
-  Reader read;
+  ProviderReference ref;
 
   MainModel _mainModel;
-  Notification _notification;
+  NotificationConfig _notification;
   ProfileRepository _profileRepository;
   ScheduleRepository _scheduleRepository;
   CalendarServiceModel _calendarServiceModel;
   final StreamController _streamResultUpload = StreamController();
-
-  SharedPrefs _sharedPrefs;
 
   Future<void> _initLoad() async {
     await insertProfileGuest();
@@ -77,7 +74,7 @@ class MainNotifier with ChangeNotifier, ActionMixin {
   String get getTitle => _mainModel.title;
 
   String get getName {
-    if (read(currentMSVProvider).state == 'guest') {
+    if (getMSV == 'guest') {
       return 'Khách';
     }
     return _mainModel?.profile?.HoTen ?? 'Họ Tên';
@@ -89,7 +86,7 @@ class MainNotifier with ChangeNotifier, ActionMixin {
 
   Map<String, List<Schedule>> get getEntriesOfDay => _mainModel.entriesOfDay;
 
-  String get getMSV => read(currentMSVProvider).state;
+  String get getMSV => ref.read(currentMSVProvider).state;
 
   bool get isGuest =>
       getMSV == null ||
@@ -97,9 +94,9 @@ class MainNotifier with ChangeNotifier, ActionMixin {
       getName == null ||
       getName == 'Họ Tên';
 
+  /// return charAt(0) of name
   String get getAvatarName {
-    final String name = getName;
-    final List<String> splitName = name.split(' ');
+    final splitName = getName.split(' ');
     return splitName.last[0];
   }
 
@@ -113,8 +110,7 @@ class MainNotifier with ChangeNotifier, ActionMixin {
 
   Future<List<EventStudentSocial>> getEventStudentSocials() async {
     logs('upload schedules');
-    return await _calendarServiceModel
-        .getEventStudentSocials(_mainModel.schedules);
+    return _calendarServiceModel.getEventStudentSocials(_mainModel.schedules);
   }
 
   CalendarServiceCommunicate get calendarServiceCommunicate {
@@ -126,34 +122,33 @@ class MainNotifier with ChangeNotifier, ActionMixin {
   }
 
   Future<void> loadCurrentMSV() async {
-    final String value = await _sharedPrefs.getCurrentMSV();
+    final value = await SharedPrefs.instance.getCurrentMSV();
 
     if (value == null || value.isEmpty) {
       return;
     }
     if (value.isNotEmpty) {
-      read(currentMSVProvider).state = value;
+      ref.read(currentMSVProvider).state = value;
     }
-    loadProfile();
-    loadSchedules();
-    loadAllProfile();
+    await loadProfile();
+    await loadSchedules();
+    await loadAllProfile();
   }
 
   Future<void> loadProfile() async {
-    final Profile profile = await _profileRepository.getUserByMaSV(getMSV);
+    final profile = await _profileRepository.getUserByMSV(getMSV);
     _mainModel.profile = profile;
     notifyListeners();
   }
 
   Future<void> loadAllProfile() async {
-    final List<Profile> profiles = await _profileRepository.getAllUsers();
+    final profiles = await _profileRepository.getAllUsers();
     _mainModel.allProfile = profiles;
     notifyListeners();
   }
 
   Future<void> loadSchedules() async {
-    final List<Schedule> schedule =
-        await _scheduleRepository.getListSchedules(getMSV);
+    final schedule = await _scheduleRepository.getListSchedules(getMSV);
     _mainModel.schedules = schedule;
     notifyListeners();
     logs('schedule is ${schedule.length}');
@@ -177,9 +172,9 @@ class MainNotifier with ChangeNotifier, ActionMixin {
     //khoi tao entriesOfDay, neu khoi tao roi thi dung tiep
     _mainModel.initEntriesOfDayIfNeed();
 
-    final int len = schedules.length;
+    final len = schedules.length;
     Schedule schedule;
-    for (int i = 0; i < len; i++) {
+    for (var i = 0; i < len; i++) {
       schedule = schedules[i];
       _mainModel.initEntriesIfNeed(schedule.getNgay);
       _mainModel.addScheduleToEntriesOfDay(schedule);
@@ -194,21 +189,22 @@ class MainNotifier with ChangeNotifier, ActionMixin {
   }
 
   Future<void> _checkInternetConnectivity() async {
-    final ConnectivityResult result = await Connectivity().checkConnectivity();
+    final result = await Connectivity().checkConnectivity();
     if (result == ConnectivityResult.none) {
-      callback(EventAlert(message: 'Không có kết nối mạng :('));
+      callback(const EventAlert(message: 'Không có kết nối mạng :('));
     } else if (result == ConnectivityResult.mobile ||
         result == ConnectivityResult.wifi) {
       callback(const EventAlertUpdateSchedule());
     }
   }
 
+  /// launch to messenger to ib with admin EagleTeam
   Future<void> launchURL() async {
-    const String url = 'https://m.me/hoangthang1412';
+    const url = 'https://m.me/hoangthang1412';
     if (await canLaunch(url)) {
       await launch(url);
     } else {
-      throw 'Could not launch $url';
+      throw Exception('Could not launch $url');
     }
   }
 
@@ -218,7 +214,7 @@ class MainNotifier with ChangeNotifier, ActionMixin {
     //xoá hết lịch,điểm,profile của thằng msv hiện tại
 
     try {
-      List<Profile> profiles = await _profileRepository.getAllUsers();
+      final profiles = await _profileRepository.getAllUsers();
 
       //lấy ra toàn bộ user có trong máy
       profiles.removeWhere((profile) =>
@@ -226,10 +222,10 @@ class MainNotifier with ChangeNotifier, ActionMixin {
       //kiểm tra nếu list vẫn còn user thì gán vào shared msv của thằng đầu tiên luôn
       //nếu không còn thằng nào thì gán vào shared '' (empty)
       if (profiles.isNotEmpty) {
-        await _sharedPrefs.setCurrentMSV(profiles[0].MaSinhVien);
+        await SharedPrefs.instance.setCurrentMSV(profiles[0].MaSinhVien);
       } else {
         //không còn thằng nào :((
-        await _sharedPrefs.setCurrentMSV('');
+        await SharedPrefs.instance.setCurrentMSV('');
       }
       //Xoá profile
       await _profileRepository.deleteUserByMSV(getMSV);
@@ -242,45 +238,25 @@ class MainNotifier with ChangeNotifier, ActionMixin {
       await _scheduleRepository.deleteScheduleByMSV(getMSV);
       //reset data
       _mainModel.resetData();
-      loadCurrentMSV();
-      callback(EventAlert(message: 'Đăng xuất thành công'));
+      await loadCurrentMSV();
+      callback(const EventAlert(message: 'Đăng xuất thành công'));
       notifyListeners();
     } catch (e) {
       logs('error is:$e');
       _mainModel.resetData();
-      loadCurrentMSV();
+      await loadCurrentMSV();
       callback(EventAlert(message: 'Đăng xuất bị lỗi: $e'));
       notifyListeners();
     }
   }
 
+  /// switch to another profile to see the information of that
   Future<void> switchToProfile(Profile profile) async {
     // đặt lại currentmsv trong shared
-    await _sharedPrefs.setCurrentMSV(profile.MaSinhVien);
+    await SharedPrefs.instance.setCurrentMSV(profile.MaSinhVien);
 //    reset data
     _mainModel.resetData();
     notifyListeners();
-    loadCurrentMSV();
-  }
-
-  getRandomColor() {
-//    return _mainModel.colors[Random().nextInt(_mainModel.colors.length)];
-  }
-
-  void calendarPageChanged(int index) {
-//    if (index != 12) {
-    //nếu nhảy sang page khác page mặc định thì hiện lên
-//      if (_mainModel.hideButtonCurrent) {
-//        inputAction.add({'type': MainAction.forward});
-//        _mainModel.hideButtonCurrent = false;
-//      }
-//    } else if (_isCurrentDay(
-//        _mainModel.clickDay, _mainModel.clickMonth, _mainModel.clickYear)) {
-//      nếu là page mặc định và ngày đang chọn cũng là currentday thì ẩn nó đi
-//      if (!_mainModel.hideButtonCurrent) {
-//        inputAction.add({'type': MainAction.reverse});
-//        _mainModel.hideButtonCurrent = true;
-//      }
-//    }
+    await loadCurrentMSV();
   }
 }
