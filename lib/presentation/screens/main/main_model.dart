@@ -1,12 +1,7 @@
-import 'dart:ui';
-
-import 'package:flutter/material.dart';
-
 import '../../../models/entities/profile.dart';
 import '../../../models/entities/schedule.dart';
 
 class MainModel {
-  String title = 'Student Social';
   String name = 'Tên sinh viên';
   String className = 'Lớp';
 
@@ -20,14 +15,6 @@ class MainModel {
   set schedules(List<Schedule> schedules) {
     _schedules = schedules..sort((a, b) => a.startTime.compareTo(b.startTime));
   }
-
-  static const List<Color> colors = [
-    Colors.blue,
-    Colors.red,
-    Colors.green,
-    Colors.yellow,
-    Colors.purple
-  ];
 
   bool get entriesOfDayNotEmpty =>
       entriesOfDay != null && entriesOfDay.isNotEmpty;

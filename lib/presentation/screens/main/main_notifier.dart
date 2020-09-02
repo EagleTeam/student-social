@@ -32,7 +32,9 @@ final mainProvider = ChangeNotifierProvider<MainNotifier>((ref) {
   return MainNotifier(ref);
 });
 
+// ignore: public_member_api_docs
 class MainNotifier with ChangeNotifier, ActionMixin {
+  /// handle in main screen
   MainNotifier(this.ref) {
     _profileRepository = ref.watch(profileRepositoryProvider);
     _scheduleRepository = ref.watch(scheduleRepositoryProvider);
@@ -54,6 +56,8 @@ class MainNotifier with ChangeNotifier, ActionMixin {
   Future<void> _initLoad() async {
     await insertProfileGuest();
     await loadCurrentMSV();
+    await loadProfile();
+    await loadSchedules();
     await loadAllProfile();
   }
 
@@ -70,8 +74,6 @@ class MainNotifier with ChangeNotifier, ActionMixin {
   Stream get getStreamUpload => _streamResultUpload.stream;
 
   Sink get inputStreamUpload => _streamResultUpload.sink;
-
-  String get getTitle => _mainModel.title;
 
   String get getName {
     if (getMSV == 'guest') {
@@ -130,9 +132,6 @@ class MainNotifier with ChangeNotifier, ActionMixin {
     if (value.isNotEmpty) {
       ref.read(currentMSVProvider).state = value;
     }
-    await loadProfile();
-    await loadSchedules();
-    await loadAllProfile();
   }
 
   Future<void> loadProfile() async {

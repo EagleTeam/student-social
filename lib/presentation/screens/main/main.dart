@@ -15,7 +15,7 @@ import '../../../models/entities/login_result.dart';
 import '../../common_widgets/add_note.dart';
 import '../../common_widgets/calendar.dart';
 import '../../common_widgets/circle_loading.dart';
-import '../../common_widgets/update_lich.dart';
+import '../../common_widgets/update_schedule.dart';
 import '../extracurricular/extracurricular.dart';
 import '../login/login.dart';
 import '../mark/mark.dart';
@@ -358,7 +358,7 @@ class MainScreenState extends State<MainScreen> {
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (context) {
-        return UpdateLich(
+        return UpdateSchedule(
           mcontext: this.context,
         ); //magic ^_^
       },

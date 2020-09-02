@@ -8,16 +8,16 @@ import 'package:studentsocial/presentation/screens/main/main_notifier.dart';
 
 import '../../models/entities/semester.dart';
 
-class UpdateLich extends StatefulWidget {
-  const UpdateLich({this.mcontext});
+class UpdateSchedule extends StatefulWidget {
+  const UpdateSchedule({this.mcontext});
 
   final BuildContext mcontext;
 
   @override
-  _UpdateLichState createState() => _UpdateLichState();
+  _UpdateScheduleState createState() => _UpdateScheduleState();
 }
 
-class _UpdateLichState extends State<UpdateLich> {
+class _UpdateScheduleState extends State<UpdateSchedule> {
   String lichHoc, lichThi;
 
   Map<String, String> subjectsName = <String, String>{};
