@@ -1,12 +1,15 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 
 import '../../helpers/date.dart';
 import '../../helpers/logging.dart';
 import '../../models/entities/schedule.dart';
 
+final _ddmmyyy = DateFormat('dd/MM/yyyy');
+
 class NotificationConfig {
   NotificationConfig() {
-    init();
+    _initNotification();
     //TODO('nhảy đến đúng ngày khi bấm vào notifi')
   }
 
@@ -23,9 +26,9 @@ class NotificationConfig {
   InitializationSettings initializationSettings;
   DateSupport _dateSupport;
 
-  String msv;
+  String _msv;
 
-  void init() {
+  void _initNotification() {
     flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     initializationSettings = InitializationSettings(
         initializationSettingsAndroid, initializationSettingsIOS);
@@ -36,13 +39,13 @@ class NotificationConfig {
 
   Future<void> initSchedulesNotification(
       Map<String, List<Schedule>> entriesOfDay, String msv) async {
-    this.msv = msv;
+    this._msv = msv;
     // ban đầu sẽ hủy toàn bộ notifi đã lên lịch từ trước để lên lịch lại từ đầu. đảm bảo các notifi sẽ luôn đc cập nhật chính xác trong mỗi lần mở app hay có thay đổi lịch.
     await cancelAllNotifi();
     DateTime scheduledNotificationDateTime, dateTimeForGetData;
     List<Schedule> entries;
     //nếu mở app vào lúc > 19:30 thì sẽ không thông báo ngày hôm nay nữa
-    int i = 0;
+    var i = 0;
     if (_dateSupport.getHour() >= 19) {
       if (_dateSupport.getHour() == 19) {
         if (_dateSupport.getMinute() >= 30) {
@@ -58,7 +61,9 @@ class NotificationConfig {
       dateTimeForGetData = _dateSupport.getDate(i +
           1); // ví dụ ngày hôm nay thì phải lấy lịch của ngày hôm sau để thông báo
 //      print(_dateSupport.format(scheduledNotificationDateTime));
-      entries = entriesOfDay[_dateSupport.format(dateTimeForGetData)];
+      var keyEntries = _ddmmyyy.format(dateTimeForGetData);
+      logs('keyEntries is $keyEntries');
+      entries = entriesOfDay[keyEntries];
 //      print(entries);
       await scheduleOneNotifi(
           scheduledNotificationDateTime, dateTimeForGetData, i, entries);
@@ -133,7 +138,7 @@ class NotificationConfig {
 
   String getContentByEntri(Schedule entri) {
     if (entri.LoaiLich == 'LichHoc') {
-      return 'Môn học: ${entri.HocPhan}\nThời gian: ${entri.TietHoc} ${_dateSupport.getThoiGian(entri.TietHoc, msv)}\nĐịa điểm: ${entri.DiaDiem}\nGiảng viên: ${entri.GiaoVien}';
+      return 'Môn học: ${entri.HocPhan}\nThời gian: ${entri.TietHoc} ${_dateSupport.getThoiGian(entri.TietHoc, _msv)}\nĐịa điểm: ${entri.DiaDiem}\nGiảng viên: ${entri.GiaoVien}';
     } else if (entri.LoaiLich == 'LichThi') {
       return 'Môn thi: ${entri.HocPhan}\nSố báo danh: ${entri.SoBaoDanh}\nThời gian: ${entri.TietHoc}\nĐịa điểm: ${entri.DiaDiem}\nHình thức: ${entri.HinhThuc}';
     } else if (entri.LoaiLich == 'Note') {
