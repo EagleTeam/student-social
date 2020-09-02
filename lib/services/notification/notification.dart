@@ -17,31 +17,32 @@ class NotificationConfig {
 //  var initializationSettingsIOS = IOSInitializationSettings(
 //      onDidReceiveLocalNotification: onDidReceiveLocalNotification);
 
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
+  FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin;
 
   AndroidInitializationSettings initializationSettingsAndroid =
       const AndroidInitializationSettings('@mipmap/ic_launcher');
-  IOSInitializationSettings initializationSettingsIOS =
+  final IOSInitializationSettings _initializationSettingsIOS =
       const IOSInitializationSettings();
-  InitializationSettings initializationSettings;
+  InitializationSettings _initializationSettings;
   DateSupport _dateSupport;
 
   String _msv;
 
   void _initNotification() {
-    flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-    initializationSettings = InitializationSettings(
-        initializationSettingsAndroid, initializationSettingsIOS);
-    flutterLocalNotificationsPlugin.initialize(initializationSettings,
-        onSelectNotification: onSelectNotification);
+    _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+    _initializationSettings = InitializationSettings(
+        initializationSettingsAndroid, _initializationSettingsIOS);
+    _flutterLocalNotificationsPlugin.initialize(_initializationSettings,
+        onSelectNotification: _onSelectNotification);
     _dateSupport = DateSupport();
   }
 
+  /// init schedules notification and set notification at 19h30 daily
   Future<void> initSchedulesNotification(
       Map<String, List<Schedule>> entriesOfDay, String msv) async {
-    this._msv = msv;
+    _msv = msv;
     // ban đầu sẽ hủy toàn bộ notifi đã lên lịch từ trước để lên lịch lại từ đầu. đảm bảo các notifi sẽ luôn đc cập nhật chính xác trong mỗi lần mở app hay có thay đổi lịch.
-    await cancelAllNotifi();
+    await _cancelAllNotifi();
     DateTime scheduledNotificationDateTime, dateTimeForGetData;
     List<Schedule> entries;
     //nếu mở app vào lúc > 19:30 thì sẽ không thông báo ngày hôm nay nữa
@@ -61,25 +62,24 @@ class NotificationConfig {
       dateTimeForGetData = _dateSupport.getDate(i +
           1); // ví dụ ngày hôm nay thì phải lấy lịch của ngày hôm sau để thông báo
 //      print(_dateSupport.format(scheduledNotificationDateTime));
-      var keyEntries = _ddmmyyy.format(dateTimeForGetData);
+      final keyEntries = _ddmmyyy.format(dateTimeForGetData);
       logs('keyEntries is $keyEntries');
       entries = entriesOfDay[keyEntries];
 //      print(entries);
-      await scheduleOneNotifi(
+      await _scheduleOneNotifi(
           scheduledNotificationDateTime, dateTimeForGetData, i, entries);
     }
     logs('set schedule notification done !');
   }
 
-  Future<void> cancelAllNotifi() async {
-    await flutterLocalNotificationsPlugin.cancelAll();
+  Future<void> _cancelAllNotifi() async {
+    await _flutterLocalNotificationsPlugin.cancelAll();
   }
 
-  Future<void> scheduleOneNotifi(DateTime scheduledNotificationDateTime,
+  Future<void> _scheduleOneNotifi(DateTime scheduledNotificationDateTime,
       DateTime dateTimeForGetData, int id, List<Schedule> entriesOfDay) async {
-    final String body = getBody(entriesOfDay);
-    final AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
+    final body = _getBody(entriesOfDay);
+    final androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'student_notifi_id',
       'student_notifi_name',
       'student_notifi_description',
@@ -90,21 +90,20 @@ class NotificationConfig {
       icon: '@mipmap/ic_launcher',
     );
 
-    const IOSNotificationDetails iOSPlatformChannelSpecifics =
-        IOSNotificationDetails();
+    const iOSPlatformChannelSpecifics = IOSNotificationDetails();
 
-    final NotificationDetails platformChannelSpecifics = NotificationDetails(
+    final platformChannelSpecifics = NotificationDetails(
         androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
 
-    await flutterLocalNotificationsPlugin.schedule(
+    await _flutterLocalNotificationsPlugin.schedule(
         id,
-        getTitle(dateTimeForGetData, entriesOfDay),
+        _getTitle(dateTimeForGetData, entriesOfDay),
         body,
         scheduledNotificationDateTime,
         platformChannelSpecifics);
   }
 
-  Future<void> onSelectNotification(String payload) async {
+  Future<void> _onSelectNotification(String payload) async {
     if (payload != null) {
       logs('notification payload: $payload');
     }
@@ -114,7 +113,7 @@ class NotificationConfig {
 //    );
   }
 
-  String getTitle(DateTime dateTimeForGetData, List<Schedule> entriesOfDay) {
+  String _getTitle(DateTime dateTimeForGetData, List<Schedule> entriesOfDay) {
     if (entriesOfDay == null || entriesOfDay.isEmpty) {
       return 'Lịch cá nhân ngày ${dateTimeForGetData.day}-${dateTimeForGetData.month}-${dateTimeForGetData.year}';
     } else {
@@ -122,21 +121,21 @@ class NotificationConfig {
     }
   }
 
-  String getBody(List<Schedule> entriesOfDay) {
+  String _getBody(List<Schedule> entriesOfDay) {
     if (entriesOfDay == null || entriesOfDay.isEmpty) {
       return 'Ngày mai bạn rảnh ^_^';
     }
-    String msg = '';
-    for (int i = 0; i < entriesOfDay.length; i++) {
-      msg += getContentByEntri(entriesOfDay[i]);
+    final msg = StringBuffer();
+    for (var i = 0; i < entriesOfDay.length; i++) {
+      msg.write(_getContentByEntri(entriesOfDay[i]));
       if (i != entriesOfDay.length - 1) {
-        msg += '\n•\n';
+        msg.write('\n•\n');
       }
     }
-    return msg;
+    return msg.toString();
   }
 
-  String getContentByEntri(Schedule entri) {
+  String _getContentByEntri(Schedule entri) {
     if (entri.LoaiLich == 'LichHoc') {
       return 'Môn học: ${entri.HocPhan}\nThời gian: ${entri.TietHoc} ${_dateSupport.getThoiGian(entri.TietHoc, _msv)}\nĐịa điểm: ${entri.DiaDiem}\nGiảng viên: ${entri.GiaoVien}';
     } else if (entri.LoaiLich == 'LichThi') {

@@ -72,3 +72,4 @@ build/
 .flutter-plugins-dependencies
 android/key.properties
 ios/Flutter/.last_build_id
+android/app/keystore.jks
