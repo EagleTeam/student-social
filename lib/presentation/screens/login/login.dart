@@ -11,6 +11,8 @@ import '../../../events/pop.dart';
 import '../../../events/save_success.dart';
 import '../../../helpers/dialog_support.dart';
 import '../../../models/entities/semester.dart';
+import '../../../services/local_storage/database/repository/profile_repository.dart';
+import '../../../services/local_storage/database/repository/schedule_repository.dart';
 import 'login_notifier.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -19,6 +21,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  LoginNotifier _loginNotifier;
   FocusNode textSecondFocusNode = FocusNode();
   final TextEditingController controllerEmail = TextEditingController();
   final TextEditingController controllerPassword = TextEditingController();
@@ -26,7 +29,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    context.read(loginProvider).initActions(actions());
+    _loginNotifier = LoginNotifier(context.read(profileRepositoryProvider),
+        context.read(scheduleRepositoryProvider));
+    _loginNotifier.initActions(actions());
   }
 
   List<ActionEntry> actions() {
@@ -158,9 +163,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _submit() {
-    context
-        .read(loginProvider)
-        .submit(controllerEmail.text, controllerPassword.text);
+    _loginNotifier.submit(controllerEmail.text, controllerPassword.text);
   }
 
   Widget _itemKyHoc(BuildContext context, Semester data) {
@@ -176,7 +179,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               trailing: const Icon(Icons.arrow_forward),
               onTap: () {
-                context.read(loginProvider).semesterClicked(data.MaKy);
+                _loginNotifier.semesterClicked(data.MaKy);
               },
               contentPadding: const EdgeInsets.all(0),
             ),

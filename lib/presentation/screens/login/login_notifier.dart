@@ -2,8 +2,6 @@ import 'dart:async';
 
 import 'package:action_mixin/action_mixin.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../events/alert.dart';
 import '../../../events/alert_chon_kyhoc.dart';
@@ -19,17 +17,10 @@ import '../../../services/local_storage/database/repository/schedule_repository.
 import '../../../services/local_storage/shared_prefs.dart';
 import 'login_state.dart';
 
-/// Provider login ChangeNotifier
-final loginProvider = ChangeNotifierProvider<LoginNotifier>((ref) {
-  return LoginNotifier(ref);
-});
-
 /// Login ChangeNotifier
-class LoginNotifier with ChangeNotifier, ActionMixin {
+class LoginNotifier with ActionMixin {
   /// Login ChangeNotifier
-  LoginNotifier(ProviderReference ref) {
-    _profileRepository = ref.watch(profileRepositoryProvider);
-    _scheduleRepository = ref.watch(scheduleRepositoryProvider);
+  LoginNotifier(this._profileRepository, this._scheduleRepository) {
     _loginModel = LoginState();
   }
 
