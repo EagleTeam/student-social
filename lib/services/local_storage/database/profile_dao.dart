@@ -7,11 +7,11 @@ class ProfileDao {
   final MyDatabase database;
 
   Future<int> insertOnlyUser(Profile user) async {
-    return await database.insert(user);
+    return database.insert(user);
   }
 
   Future<int> updateOnlyUser(Profile user) async {
-    return await database.updateProfile(user);
+    return database.updateProfile(user);
   }
 
   Future<void> deleteOnlyUser(Profile user) async {
@@ -19,15 +19,15 @@ class ProfileDao {
   }
 
   Future<Profile> getUserByMSV(String msv) async {
-    return await database.getProfileByMSV(msv);
+    return database.getProfileByMSV(msv);
   }
 
   Future<int> deleteAllUser() async {
-    return await database.deleteAll(Profile.table);
+    return database.deleteAll(Profile.table);
   }
 
   Future<void> deleteUserByMSV(String msv) async {
-    return await database.deleteProfile(msv);
+    return database.deleteProfile(msv);
   }
 
   Future<List<Profile>> getAllUsers() {

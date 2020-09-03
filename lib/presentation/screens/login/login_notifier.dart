@@ -73,7 +73,9 @@ class LoginNotifier with ActionMixin {
     final result = await restClient.login(msv, password);
     _loginModel.msv = msv;
     if (result.isSuccess()) {
+      logs((result as LoginSuccess).toJson());
       _loginModel.profile = (result as LoginSuccess).message.profile;
+      _loginModel.profile.Token = (result as LoginSuccess).message.Token;
       _loginModel.token = (result as LoginSuccess).message.Token;
       callback(const EventPop());
       callback(const EventLoadingMessage(message: 'Đang tải kỳ học'));
@@ -118,6 +120,7 @@ class LoginNotifier with ActionMixin {
   Future<void> _saveInfo() async {
     callback(
         const EventLoadingMessage(message: 'Đang lưu thông tin người dùng'));
+    logs('save profile is ${_loginModel.profile}');
     final resProfile =
         await _profileRepository.insertOnlyUser(_loginModel.profile);
     callback(const EventPop());

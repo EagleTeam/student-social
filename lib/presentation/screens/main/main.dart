@@ -6,6 +6,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lazy_code/lazy_code.dart';
+import 'package:studentsocial/events/alert_chon_kyhoc.dart';
+import 'package:studentsocial/events/loading_message.dart';
+import 'package:studentsocial/events/save_success.dart';
+import 'package:studentsocial/models/update_schedule.dart';
+import 'package:studentsocial/services/local_storage/database/repository/profile_repository.dart';
+import 'package:studentsocial/services/local_storage/database/repository/schedule_repository.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../../../events/alert.dart';
@@ -17,7 +23,6 @@ import '../../../models/entities/login_result.dart';
 import '../../common_widgets/add_note.dart';
 import '../../common_widgets/calendar.dart';
 import '../../common_widgets/circle_loading.dart';
-import '../../common_widgets/update_schedule.dart';
 import '../extracurricular/extracurricular.dart';
 import '../login/login.dart';
 import '../mark/mark.dart';
@@ -35,13 +40,18 @@ class MainScreen extends StatefulWidget {
 
 class MainScreenState extends State<MainScreen> {
   CalendarController _calendarController;
+  UpdateSchedule _updateSchedule;
 
   @override
   void initState() {
     super.initState();
     context.read(mainProvider).initActions(_actions());
     _calendarController = CalendarController();
-    // _handleCalendarController();
+    _updateSchedule = UpdateSchedule(
+        ScheduleType.update,
+        context.read(profileRepositoryProvider),
+        context.read(scheduleRepositoryProvider));
+    _updateSchedule.initActions(_actionUpdate());
   }
 
   List<ActionEntry> _actions() {
@@ -59,6 +69,45 @@ class MainScreenState extends State<MainScreen> {
             }
           }),
     ];
+  }
+
+  List<ActionEntry> _actionUpdate() {
+    return [
+      ActionEntry(event: const EventPop(), action: (_) => pop(context)),
+      ActionEntry(
+          event: const EventLoadingMessage(),
+          action: (event) {
+            if (event is EventLoadingMessage) {
+              loadingMessage(context, event.message);
+            }
+          }),
+      ActionEntry(
+          event: const EventAlert(),
+          action: (event) {
+            if (event is EventAlert) {
+              showAlertMessage(context, event.message);
+            }
+          }),
+      ActionEntry(
+          event: const EventAlertChonKyHoc(),
+          action: (event) {
+            if (event is EventAlertChonKyHoc) {
+              _updateSchedule.showAlertChonKyHoc(context, event.semesterResult);
+            }
+          }),
+      ActionEntry(
+          event: const EventSaveSuccess(),
+          action: (event) {
+            if (event is EventSaveSuccess) {
+              _updateSuccess();
+            }
+          }),
+    ];
+  }
+
+  Future<void> _updateSuccess() async {
+    await showSuccess(context, 'Cập nhật xong !');
+    context.refresh(mainProvider);
   }
 
   void _handleCalendarController() {
@@ -365,24 +414,19 @@ class MainScreenState extends State<MainScreen> {
         }
         return IconButton(
           icon: const Icon(Icons.refresh),
-//            onPressed: _mainNotifier.updateSchedule,
-          onPressed: () {
-            showDialog(
-                context: context,
-                builder: (ct) {
-                  return AlertDialog(
-                    title: const Text(':('),
-                    content: const Text('Tính năng đang được bảo trì'),
-                    actions: [
-                      FlatButton(
-                        onPressed: () {
-                          Navigator.of(ct).pop();
-                        },
-                        child: const Text('ok'),
-                      )
-                    ],
-                  );
-                });
+          onPressed: () async {
+            final currentProfile =
+                await context.read(currentProfileProvider.future);
+
+            if (currentProfile.Token == null) {
+              await showAlertMessage(context,
+                  'Hình như bạn đã đăng nhập từ phiên bản trước đó, bạn cần đăng xuất và đăng nhập lại để tính năng có thể hoạt động chính xác !');
+              return;
+            }
+            showLoading(context);
+            _updateSchedule.token = currentProfile.Token;
+            _updateSchedule.msv = currentProfile.MaSinhVien;
+            _updateSchedule.update();
           },
         );
       },
@@ -398,9 +442,9 @@ class MainScreenState extends State<MainScreen> {
       context: context,
       barrierDismissible: false, // user must tap button!
       builder: (context) {
-        return UpdateSchedule(
-          mcontext: this.context,
-        ); //magic ^_^
+        // return UpdateSchedule(
+        //   mcontext: this.context,
+        // ); //magic ^_^
       },
     );
   }
