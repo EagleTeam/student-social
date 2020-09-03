@@ -25,8 +25,8 @@ class LoginNotifier with ActionMixin {
   }
 
   LoginState _loginModel;
-  ProfileRepository _profileRepository;
-  ScheduleRepository _scheduleRepository;
+  final ProfileRepository _profileRepository;
+  final ScheduleRepository _scheduleRepository;
 
   bool _dataIsInvalid(String email, String password) =>
       email.trim().isEmpty || password.trim().isEmpty;

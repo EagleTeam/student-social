@@ -1,23 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:studentsocial/helpers/viet_calendar.dart';
 import 'package:studentsocial/models/entities/schedule.dart';
+import 'package:studentsocial/presentation/screens/main/main_providers.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 final vietCalendar = VietCalendar();
 
 class CalendarWidget extends StatefulWidget {
-  const CalendarWidget({this.schedules, this.onTap});
+  const CalendarWidget({this.schedules, this.onTap, this.controller});
 
   final List<Schedule> schedules;
   final Function(CalendarTapDetails) onTap;
+  final CalendarController controller;
 
   @override
   _CalendarWidgetState createState() => _CalendarWidgetState();
 }
 
 class _CalendarWidgetState extends State<CalendarWidget> {
-  DateTime _date = DateTime.now();
-  CalendarController calendarController = CalendarController();
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      widget.controller.addPropertyChangedListener((value) {
+        context.read(dateSelectedProvider).state =
+            widget.controller.selectedDate;
+      });
+    });
+  }
 
   CalendarHeaderStyle calendarHeaderStyle = CalendarHeaderStyle(
       textAlign: TextAlign.center,
@@ -40,6 +51,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
         SizedBox(
           height: 300,
           child: SfCalendar(
+            controller: widget.controller,
             firstDayOfWeek: 1,
             headerStyle: calendarHeaderStyle,
             initialSelectedDate: DateTime.now(),
@@ -49,18 +61,22 @@ class _CalendarWidgetState extends State<CalendarWidget> {
             // change the display mode as appointment using the appointment display mode
             // property
             monthViewSettings: monthViewSettings,
-            onTap: (CalendarTapDetails details) {
+            showNavigationArrow: true,
+            onTap: (details) {
               if (details.targetElement == CalendarElement.calendarCell) {
                 widget.onTap?.call(details);
-                setState(() {
-                  _date = details.date;
-                });
               }
             },
           ),
         ),
-        Expanded(
-            child: ListScheduleWidget(date: _date, schedules: widget.schedules))
+        Consumer(
+          builder: (ctx, watch, child) {
+            final date = watch(dateSelectedProvider).state;
+            return Expanded(
+                child: ListScheduleWidget(
+                    date: date, schedules: widget.schedules));
+          },
+        )
       ],
     );
   }

@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:action_mixin/action_mixin.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lazy_code/lazy_code.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../../../events/alert.dart';
 import '../../../events/alert_update_schedule.dart';
@@ -24,6 +26,7 @@ import '../settings.dart';
 import '../time_table.dart';
 import 'drawer.dart';
 import 'main_notifier.dart';
+import 'main_providers.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -31,10 +34,14 @@ class MainScreen extends StatefulWidget {
 }
 
 class MainScreenState extends State<MainScreen> {
+  CalendarController _calendarController;
+
   @override
   void initState() {
     super.initState();
     context.read(mainProvider).initActions(_actions());
+    _calendarController = CalendarController();
+    // _handleCalendarController();
   }
 
   List<ActionEntry> _actions() {
@@ -54,6 +61,12 @@ class MainScreenState extends State<MainScreen> {
     ];
   }
 
+  void _handleCalendarController() {
+    _calendarController.addPropertyChangedListener((value) {
+      print(value);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,8 +84,7 @@ class MainScreenState extends State<MainScreen> {
             return const CircleLoading();
           }
           return CalendarWidget(
-            schedules: schedules,
-          );
+              schedules: schedules, controller: _calendarController);
         },
       ),
       drawer: DrawerWidget(
@@ -85,12 +97,41 @@ class MainScreenState extends State<MainScreen> {
         settingTap: _settingTap,
         logoutTap: _logoutTap,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showDialogAddGhiChu();
-        },
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: _floatingActionButton(),
+    );
+  }
+
+  Widget _floatingActionButton() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Consumer(
+          builder: (ctx, watch, child) {
+            final dateSelected = watch(dateSelectedProvider).state;
+            if (dateSelected.formatDDMMYYY != DateTime.now().formatDDMMYYY) {
+              return child;
+            }
+            return const SizedBox();
+          },
+          child: FloatingActionButton(
+            onPressed: () {
+              _calendarController.selectedDate = DateTime.now();
+              _calendarController.displayDate = DateTime.now();
+            },
+            child: Text(
+              DateTime.now().day.toString(),
+              style: const TextStyle(fontSize: 24),
+            ),
+          ),
+        ),
+        const Height(8),
+        FloatingActionButton(
+          onPressed: () {
+            _showDialogAddGhiChu();
+          },
+          child: const Icon(Icons.add),
+        ),
+      ],
     );
   }
 
@@ -142,9 +183,8 @@ class MainScreenState extends State<MainScreen> {
   // ****************** done
 
   Future<void> _confirmLogout() async {
-    return showDialog<void>(
+    await showDialog(
       context: context,
-      barrierDismissible: true, // user must tap button!
       builder: (context) {
         return AlertDialog(
           title: const Text('Bạn có muốn đăng xuất không?'),
