@@ -10,7 +10,6 @@ import '../../../events/loading_message.dart';
 import '../../../events/pop.dart';
 import '../../../events/save_success.dart';
 import '../../../helpers/dialog_support.dart';
-import '../../../models/entities/semester.dart';
 import '../../../services/local_storage/database/repository/profile_repository.dart';
 import '../../../services/local_storage/database/repository/schedule_repository.dart';
 import 'login_notifier.dart';
@@ -32,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _loginNotifier = LoginNotifier(context.read(profileRepositoryProvider),
         context.read(scheduleRepositoryProvider));
     _loginNotifier.initActions(actions());
+    _loginNotifier.initActionUpdate(actions());
   }
 
   List<ActionEntry> actions() {
@@ -55,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
           event: const EventAlertChonKyHoc(),
           action: (event) {
             if (event is EventAlertChonKyHoc) {
-              _showAlertChonKyHoc(event.semesterResult);
+              _loginNotifier.showAlertChonKyHoc(context, event.semesterResult);
             }
           }),
       ActionEntry(
@@ -164,54 +164,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _submit() {
     _loginNotifier.submit(controllerEmail.text, controllerPassword.text);
-  }
-
-  Widget _itemKyHoc(BuildContext context, Semester data) {
-    return Container(
-        margin: const EdgeInsets.only(bottom: 5),
-        child: Column(
-          children: <Widget>[
-            ListTile(
-              title: Text(
-                'Kỳ ${data.TenKy.split('_')[0]} năm ${data.TenKy.split('_')[1]}-${data.TenKy.split('_')[2]}',
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, color: Colors.green),
-              ),
-              trailing: const Icon(Icons.arrow_forward),
-              onTap: () {
-                _loginNotifier.semesterClicked(data.MaKy);
-              },
-              contentPadding: const EdgeInsets.all(0),
-            ),
-            const Divider(
-              height: 1,
-            )
-          ],
-        ));
-  }
-
-  void _showAlertChonKyHoc(SemesterResult data) {
-    final alertDialog = AlertDialog(
-      title: const Text('Chọn kỳ học'),
-      content: BoxOfScreen(
-        widthPercent: 80,
-        heightPercent: 50,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Expanded(
-              child: ListView.builder(
-                itemCount: data.message.length,
-                itemBuilder: (BuildContext buildContext, int index) =>
-                    _itemKyHoc(context, data.message[index]),
-                shrinkWrap: true,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-    showDialog(context: context, builder: (_) => alertDialog);
   }
 }
 

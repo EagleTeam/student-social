@@ -2,34 +2,46 @@ import 'dart:async';
 
 import 'package:action_mixin/action_mixin.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:flutter/material.dart';
 
 import '../../../events/alert.dart';
-import '../../../events/alert_chon_kyhoc.dart';
 import '../../../events/loading_message.dart';
 import '../../../events/pop.dart';
-import '../../../events/save_success.dart';
 import '../../../helpers/logging.dart';
 import '../../../models/entities/login.dart';
-import '../../../models/entities/schedule.dart';
+import '../../../models/entities/semester.dart';
+import '../../../models/update_schedule.dart';
 import '../../../services/http/rest_client.dart';
 import '../../../services/local_storage/database/repository/profile_repository.dart';
 import '../../../services/local_storage/database/repository/schedule_repository.dart';
-import '../../../services/local_storage/shared_prefs.dart';
 import 'login_state.dart';
 
 /// Login ChangeNotifier
 class LoginNotifier with ActionMixin {
   /// Login ChangeNotifier
   LoginNotifier(this._profileRepository, this._scheduleRepository) {
-    _loginModel = LoginState();
+    _loginState = LoginState();
+    _updateSchedule = UpdateSchedule(
+        ScheduleType.login, _profileRepository, _scheduleRepository);
   }
 
-  LoginState _loginModel;
+  UpdateSchedule _updateSchedule;
+  LoginState _loginState;
   final ProfileRepository _profileRepository;
   final ScheduleRepository _scheduleRepository;
 
   bool _dataIsInvalid(String email, String password) =>
       email.trim().isEmpty || password.trim().isEmpty;
+
+  /// init action for UpdateSchedule
+  void initActionUpdate(List<ActionEntry> actions) {
+    _updateSchedule.initActions(actions);
+  }
+
+  /// call to UpdateSchedule.showAlertChonKyHoc
+  void showAlertChonKyHoc(BuildContext context, SemesterResult semesterResult) {
+    _updateSchedule.showAlertChonKyHoc(context, semesterResult);
+  }
 
   /// handle request submit email & password from UI
   /// and do request login or show dialog
@@ -71,85 +83,24 @@ class LoginNotifier with ActionMixin {
 
   Future<void> _loginReqest(String msv, String password) async {
     final result = await restClient.login(msv, password);
-    _loginModel.msv = msv;
+    _loginState.msv = msv;
     if (result.isSuccess()) {
       logs((result as LoginSuccess).toJson());
-      _loginModel.profile = (result as LoginSuccess).message.profile;
-      _loginModel.profile.Token = (result as LoginSuccess).message.Token;
-      _loginModel.token = (result as LoginSuccess).message.Token;
+      _loginState.profile = (result as LoginSuccess).message.profile;
+      _loginState.profile.Token = (result as LoginSuccess).message.Token;
+      _loginState.token = (result as LoginSuccess).message.Token;
       callback(const EventPop());
       callback(const EventLoadingMessage(message: 'Đang tải kỳ học'));
 
-      await _getSemester(_loginModel.token);
+      // request to get data by UpdateSchedule class
+      _updateSchedule.loginState = _loginState;
+      _updateSchedule.msv = _loginState.msv;
+      _updateSchedule.token = _loginState.token;
+      _updateSchedule.update();
     } else {
       callback(const EventPop());
       callback(const EventAlert(
           message: 'Mã sinh viên hoặc mật khẩu đăng nhập sai !'));
     }
-  }
-
-  Future<void> _getSemester(String token) async {
-    logs('token is $token');
-    final semesterResult = await restClient.getSemester(token);
-    logs('semesterResult is ${semesterResult.toJson()}');
-    callback(const EventPop());
-    callback(EventAlertChonKyHoc(semesterResult: semesterResult));
-  }
-
-  /// handle when user clicked on semester picker dialog
-  void semesterClicked(String data) {
-    logs('data is $data');
-    callback(const EventPop());
-    _loginModel.semester = data;
-    _loadData(data);
-  }
-
-  Future<void> _loadData(String semester) async {
-    callback(const EventLoadingMessage(message: 'Đang lấy lịch học'));
-    _loginModel.lichHoc =
-        await restClient.getLichHoc(_loginModel.token, semester);
-    callback(const EventPop());
-    callback(const EventLoadingMessage(message: 'Đang lấy lịch thi'));
-    _loginModel.lichThi =
-        await restClient.getLichThi(_loginModel.token, semester);
-    callback(const EventPop());
-    await _saveInfo();
-  }
-
-  /// save profile, msv, schedule, mark ... to database
-  Future<void> _saveInfo() async {
-    callback(
-        const EventLoadingMessage(message: 'Đang lưu thông tin người dùng'));
-    logs('save profile is ${_loginModel.profile}');
-    final resProfile =
-        await _profileRepository.insertOnlyUser(_loginModel.profile);
-    callback(const EventPop());
-    logs('saveProfileToDB: $resProfile');
-    final resCurrentMSV =
-        await SharedPrefs.instance.setCurrentMSV(_loginModel.msv);
-    logs('saveCurrentMSV:$resCurrentMSV');
-    callback(const EventLoadingMessage(message: 'Đang lưu lịch cá nhân'));
-    await _saveMarkToDB();
-    if (_loginModel.lichHoc.isSuccess()) {
-      (_loginModel.lichHoc as ScheduleSuccess).message.addMSV(_loginModel.msv);
-      await _scheduleRepository.insertListSchedules(
-          (_loginModel.lichHoc as ScheduleSuccess).message.Entries);
-    }
-    if (_loginModel.lichThi.isSuccess()) {
-      (_loginModel.lichThi as ScheduleSuccess).message.addMSV(_loginModel.msv);
-      await _scheduleRepository.insertListSchedules(
-          (_loginModel.lichThi as ScheduleSuccess).message.Entries);
-    }
-    callback(const EventPop());
-    callback(const EventSaveSuccess());
-    await Future.delayed(const Duration(milliseconds: 800));
-    callback(const EventPop());
-  }
-
-  Future<void> _saveMarkToDB() async {
-    //TODO: save mark to db
-//    var res = await PlatformChannel().saveMarkToDB(
-//        mark, json.encode(subjectsName), json.encode(subjectsSoTinChi), msv);
-//    print('saveMarkToDB: $res');
   }
 }
