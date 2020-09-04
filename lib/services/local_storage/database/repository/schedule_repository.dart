@@ -1,61 +1,65 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:studentsocial/main.dart';
-import 'package:studentsocial/models/entities/schedule.dart';
 
+import '../../../../helpers/logging.dart';
+import '../../../../main.dart';
+import '../../../../models/entities/schedule.dart';
 import '../database.dart';
-import '../schedule_dao.dart';
 
 final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
   return ScheduleRepository(ref.watch(databaseProvider));
 });
 
 class ScheduleRepository {
-  ScheduleRepository(MyDatabase database) {
-    dao = ScheduleDao(database);
-  }
+  ScheduleRepository(this.database);
 
-  ScheduleDao dao;
+  final MyDatabase database;
 
   Future<List<Schedule>> getListSchedules(String msv) async {
-    return await dao.getAllSchedule(msv);
+    return database.getAllSchedule(msv);
   }
 
   Future<int> insertListSchedules(List<Schedule> listSchedules) async {
-    return await dao.insertListSchedules(listSchedules);
+    logs('listSchedules is $listSchedules');
+    for (var i = 0; i < listSchedules.length; i++) {
+      final result = await database.insert(listSchedules[i]);
+      logs('result insert ${listSchedules[i].toJson()} is $result');
+    }
+    //TODO: edit value return
+    return 0;
   }
 
   Future<int> insertOnlySchedule(Schedule schedule) async {
-    return await dao.insertOnlySchedule(schedule);
+    return database.insert(schedule);
   }
 
   Future<int> deleteOnlySchedule(Schedule schedule) async {
-    return await dao.deleteOnlySchedule(schedule);
+    return database.deleteSchedule(schedule.MaSinhVien);
   }
 
   Future<int> deleteScheduleByMSV(String msv) async {
-    return await dao.deleteScheduleByMSV(msv);
+    return database.deleteSchedule(msv);
   }
 
   Future<int> deleteScheduleByMSVWithOutNote(String msv) async {
-    return await dao.deleteScheduleByMSVWithoutNote(msv);
+    return database.deleteScheduleWithoutNote(msv);
   }
 
   Future<int> deleteAllSchedules() async {
-    return await dao.deleteAllSchedule();
+    return database.deleteAll(Schedule.table);
   }
 
   Future<int> updateOnlySchedule(Schedule schedule) async {
-    return await dao.updateOnlySchedule(schedule);
+    return database.updateSchedule(schedule);
   }
 
   Future<void> countSchedules() async {
-    return dao.countSchedules();
+    return database.count(Schedule.table);
   }
 
   Future<List<Schedule>> getListScheduleByDateAndMSV(
       DateTime date, String msv) async {
-    final String strDate = DateFormat('yyyy-MM-dd').format(date);
-    return await dao.getAllScheduleFromDate(msv, strDate);
+    final strDate = DateFormat('yyyy-MM-dd').format(date);
+    return database.getAllScheduleFromDate(msv, strDate);
   }
 }
