@@ -1,4 +1,4 @@
-import 'schedule.dart';
+import '../../models/entities/schedule.dart';
 
 class EventStudentSocial {
   EventStudentSocial(this.schedule);

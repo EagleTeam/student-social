@@ -15,7 +15,7 @@ abstract class RestClient {
   factory RestClient(Dio dio, {String baseUrl}) = _RestClient;
 
   factory RestClient.create() {
-    final Dio dio = Dio();
+    final dio = Dio();
     dio.interceptors.add(LogInterceptor(
         responseBody: true,
         requestHeader: false,
