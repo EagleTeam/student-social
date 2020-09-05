@@ -1,105 +1,78 @@
 import 'dart:async';
 
+import 'package:action_mixin/action_mixin.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:flutter/foundation.dart';
-import 'package:studentsocial/models/entities/semester.dart';
-import 'package:studentsocial/services/http/rest_client.dart';
-import 'package:studentsocial/services/local_storage/database/database.dart';
-import 'package:studentsocial/services/local_storage/database/repository/profile_repository.dart';
-import 'package:studentsocial/services/local_storage/database/repository/schedule_repository.dart';
+import 'package:flutter/material.dart';
 
+import '../../../events/alert.dart';
+import '../../../events/loading_message.dart';
+import '../../../events/pop.dart';
 import '../../../helpers/logging.dart';
 import '../../../models/entities/login.dart';
-import '../../../models/entities/profile.dart';
-import '../../../models/entities/schedule.dart';
-import '../../../services/local_storage/shared_prefs.dart';
+import '../../../models/entities/semester.dart';
+import '../../../models/update_schedule.dart';
+import '../../../services/http/rest_client.dart';
+import '../../../services/local_storage/database/repository/profile_repository.dart';
+import '../../../services/local_storage/database/repository/schedule_repository.dart';
 import 'login_state.dart';
 
-enum LoginAction {
-  alert_with_message,
-  loading,
-  alert_chon_kyhoc,
-  pop,
-  save_success
-}
-
-class LoginNotifier with ChangeNotifier {
-  LoginNotifier(MyDatabase database) {
-    _sharedPrefs = SharedPrefs();
-    _profileRepository = ProfileRepository(database);
-    _scheduleRepository = ScheduleRepository(database);
-    _loginModel = LoginState();
-    _streamController = StreamController();
+/// Login ChangeNotifier
+class LoginNotifier with ActionMixin {
+  /// Login ChangeNotifier
+  LoginNotifier(this._profileRepository, this._scheduleRepository) {
+    _loginState = LoginState();
+    _updateSchedule = UpdateSchedule(
+        ScheduleType.login, _profileRepository, _scheduleRepository);
   }
 
-  LoginState _loginModel;
-  StreamController _streamController;
-  ProfileRepository _profileRepository;
-  ScheduleRepository _scheduleRepository;
-  final RestClient _client = RestClient.create();
+  UpdateSchedule _updateSchedule;
+  LoginState _loginState;
+  final ProfileRepository _profileRepository;
+  final ScheduleRepository _scheduleRepository;
 
-  SharedPrefs _sharedPrefs;
-
-  @override
-  void dispose() {
-    _streamController.close();
-    super.dispose();
-  }
-
-  bool dataIsInvalid(String email, String password) =>
+  bool _dataIsInvalid(String email, String password) =>
       email.trim().isEmpty || password.trim().isEmpty;
 
-  Sink _inputAction() {
-    return _streamController.sink;
+  /// init action for UpdateSchedule
+  void initActionUpdate(List<ActionEntry> actions) {
+    _updateSchedule.initActions(actions);
   }
 
-  Stream getActionStream() {
-    return _streamController.stream;
+  /// call to UpdateSchedule.showAlertChonKyHoc
+  void showAlertChonKyHoc(BuildContext context, SemesterResult semesterResult) {
+    _updateSchedule.showAlertChonKyHoc(context, semesterResult);
   }
 
-  void _pop() {
-    _inputAction().add({'type': LoginAction.pop});
-  }
-
-  void _loading(String msg) {
-    _inputAction().add({'type': LoginAction.loading, 'data': msg});
-  }
-
+  /// handle request submit email & password from UI
+  /// and do request login or show dialog
   Future<void> submit(String email, String password) async {
-    final bool isOnline = await _checkInternetConnectivity();
+    final isOnline = await _checkInternetConnectivity();
     if (!isOnline) {
       return;
     }
-    if (dataIsInvalid(email, password)) {
-      _inputAction().add({
-        'type': LoginAction.alert_with_message,
-        'data': 'Bạn không được để trống Mã sinh viên hoặc mật khẩu'
-      });
+    if (_dataIsInvalid(email, password)) {
+      callback(const EventAlert(
+          message: 'Bạn không được để trống Mã sinh viên hoặc mật khẩu'));
+
       return;
     }
-    if (await isExists(email.toUpperCase())) {
-      _inputAction().add({
-        'type': LoginAction.alert_with_message,
-        'data': 'Mã sinh viên này đã được thêm rồi'
-      });
+    if (await _isUserExists(email.toUpperCase())) {
+      callback(const EventAlert(message: 'Mã sinh viên này đã được thêm rồi'));
       return;
     }
-    _loading('Đang đăng nhập...');
-    _actionLogin(email.toUpperCase(), password);
+    callback(const EventLoadingMessage(message: 'Đang đăng nhập...'));
+    await _loginReqest(email.toUpperCase(), password);
   }
 
-  Future<bool> isExists(String email) async {
-    final Profile allProfile = await _profileRepository.getUserByMaSV(email);
+  Future<bool> _isUserExists(String email) async {
+    final allProfile = await _profileRepository.getUserByMSV(email);
     return allProfile != null;
   }
 
   Future<bool> _checkInternetConnectivity() async {
-    final ConnectivityResult result = await Connectivity().checkConnectivity();
+    final result = await Connectivity().checkConnectivity();
     if (result == ConnectivityResult.none) {
-      _inputAction().add({
-        'type': LoginAction.alert_with_message,
-        'data': 'Không có kết nối mạng :('
-      });
+      callback(const EventAlert(message: 'Không có kết nối mạng :('));
       return false;
     } else if (result == ConnectivityResult.mobile ||
         result == ConnectivityResult.wifi) {
@@ -108,82 +81,26 @@ class LoginNotifier with ChangeNotifier {
     return false;
   }
 
-  Future<void> _actionLogin(String msv, String password) async {
-    final LoginResult result = await _client.login(msv, password);
-    _loginModel.msv = msv;
+  Future<void> _loginReqest(String msv, String password) async {
+    final result = await restClient.login(msv, password);
+    _loginState.msv = msv;
     if (result.isSuccess()) {
-      _loginModel.profile = (result as LoginSuccess).message.profile;
-      _loginModel.token = (result as LoginSuccess).message.Token;
-      _pop();
-      _loading('Đang tải kỳ học');
-      _getSemester(_loginModel.token);
+      logs((result as LoginSuccess).toJson());
+      _loginState.profile = (result as LoginSuccess).message.profile;
+      _loginState.profile.Token = (result as LoginSuccess).message.Token;
+      _loginState.token = (result as LoginSuccess).message.Token;
+      callback(const EventPop());
+      callback(const EventLoadingMessage(message: 'Đang tải kỳ học'));
+
+      // request to get data by UpdateSchedule class
+      _updateSchedule.loginState = _loginState;
+      _updateSchedule.msv = _loginState.msv;
+      _updateSchedule.token = _loginState.token;
+      _updateSchedule.update();
     } else {
-      _pop();
-      _inputAction().add({
-        'type': LoginAction.alert_with_message,
-        'data': 'Mã sinh viên hoặc mật khẩu đăng nhập sai !'
-      });
+      callback(const EventPop());
+      callback(const EventAlert(
+          message: 'Mã sinh viên hoặc mật khẩu đăng nhập sai !'));
     }
-  }
-
-  Future<void> _getSemester(String token) async {
-    logs('token is $token');
-    final SemesterResult semesterResult = await _client.getSemester(token);
-    logs('semesterResult is ${semesterResult.toJson()}');
-    _pop();
-    _inputAction()
-        .add({'type': LoginAction.alert_chon_kyhoc, 'data': semesterResult});
-  }
-
-  void semesterClicked(String data) {
-    logs('data is $data');
-    _pop();
-    _loginModel.semester = data;
-    _loadData(data);
-  }
-
-  Future<void> _loadData(String semester) async {
-    _loading('Đang lấy lịch học');
-    _loginModel.lichHoc = await _client.getLichHoc(_loginModel.token, semester);
-    _pop();
-    _loading('Đang lấy lịch thi');
-    _loginModel.lichThi = await _client.getLichThi(_loginModel.token, semester);
-    _pop();
-    _saveInfo();
-  }
-
-  Future<void> _saveInfo() async {
-    //TODO: add later
-    _loading('Đang lưu thông tin người dùng');
-    final int resProfile =
-        await _profileRepository.insertOnlyUser(_loginModel.profile);
-    _pop();
-    logs('saveProfileToDB: $resProfile');
-    final bool resCurrentMSV =
-        await _sharedPrefs.setCurrentMSV(_loginModel.msv);
-    logs('saveCurrentMSV:$resCurrentMSV');
-    _loading('Đang lưu lịch cá nhân');
-    await saveMarkToDB();
-    if (_loginModel.lichHoc.isSuccess()) {
-      (_loginModel.lichHoc as ScheduleSuccess).message.addMSV(_loginModel.msv);
-      await _scheduleRepository.insertListSchedules(
-          (_loginModel.lichHoc as ScheduleSuccess).message.Entries);
-    }
-    if (_loginModel.lichThi.isSuccess()) {
-      (_loginModel.lichThi as ScheduleSuccess).message.addMSV(_loginModel.msv);
-      await _scheduleRepository.insertListSchedules(
-          (_loginModel.lichThi as ScheduleSuccess).message.Entries);
-    }
-    _pop();
-    _inputAction().add({'type': LoginAction.save_success});
-    await Future.delayed(Duration(milliseconds: 800));
-    _pop();
-  }
-
-  Future<void> saveMarkToDB() async {
-    //TODO: save mark to db
-//    var res = await PlatformChannel().saveMarkToDB(
-//        mark, json.encode(subjectsName), json.encode(subjectsSoTinChi), msv);
-//    print('saveMarkToDB: $res');
   }
 }

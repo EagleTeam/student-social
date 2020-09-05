@@ -1,152 +1,89 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lazy_code/lazy_code.dart';
-import 'package:provider/provider.dart';
-import 'package:studentsocial/services/local_storage/database/database.dart';
 
 import '../../../models/entities/profile.dart';
-import '../extracurricular/extracurricular.dart';
 import '../login/login.dart';
-import '../login/login_notifier.dart';
-import '../mark/mark.dart';
-import '../mark/mark_notifier.dart';
-import '../qr/qrcode_view.dart';
-import '../settings.dart';
-import '../time_table.dart';
 import 'main_notifier.dart';
 
 class DrawerWidget extends StatefulWidget {
+  const DrawerWidget(
+      {this.loginTap,
+      this.timeTableTap,
+      this.markTap,
+      this.extracurricularTap,
+      this.qrCodeTap,
+      this.supportTap,
+      this.settingTap,
+      this.logoutTap});
+
+  final VoidCallback loginTap;
+  final VoidCallback timeTableTap;
+  final VoidCallback markTap;
+  final VoidCallback extracurricularTap;
+  final VoidCallback qrCodeTap;
+  final VoidCallback supportTap;
+  final VoidCallback settingTap;
+  final VoidCallback logoutTap;
+
   @override
   _DrawerWidgetState createState() => _DrawerWidgetState();
 }
 
 class _DrawerWidgetState extends State<DrawerWidget> {
-  MainNotifier _mainNotifier;
-
   Widget _loginTile() {
-    return ListTile(
-      title: const Text('Đăng nhập bằng tài khoản sinh viên'),
-      leading: const Icon(
-        Icons.account_circle,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () async {
-        context.pop();
-        await context.push((BuildContext context) =>
-            ChangeNotifierProvider<LoginNotifier>(
-              create: (_) => LoginNotifier(Provider.of<MyDatabase>(context)),
-              child: LoginScreen(),
-            ));
-        _mainNotifier.loadCurrentMSV();
-      },
+    return _Tile(
+      title: 'Đăng nhập bằng tài khoản sinh viên',
+      icon: Icons.account_circle,
+      onTap: widget.loginTap,
     );
   }
 
   Widget _timeTableTile() {
-    return ListTile(
-      title: const Text('Thời gian ra vào lớp'),
-      leading: const Icon(
-        Icons.access_time,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () {
-        context
-          ..pop()
-          ..push((_) => TimeTable(msv: _mainNotifier.getMSV));
-      },
+    return _Tile(
+      title: 'Thời gian ra vào lớp',
+      icon: Icons.access_time,
+      onTap: widget.timeTableTap,
     );
   }
 
   Widget _markTile() {
-    return ListTile(
-      title: const Text('Tra cứu điểm'),
-      leading: const Icon(
-        Icons.assessment,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () {
-        Navigator.of(context).pop();
-        Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => ChangeNotifierProvider<MarkNotifier>(
-                  create: (_) => MarkNotifier(),
-                  child: MarkScreen(),
-                )));
-      },
+    return _Tile(
+      title: 'Tra cứu điểm',
+      icon: Icons.assessment,
+      onTap: widget.markTap,
     );
   }
 
   Widget _extracurricularTile() {
-    return ListTile(
-      title: const Text('Tra cứu điểm ngoại khóa'),
-      leading: const Icon(
-        Icons.assistant_photo,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () {
-        context
-          ..pop()
-          ..push(
-            (_) => ExtracurricularScreen(
-              msv: _mainNotifier.getMSV,
-            ),
-          );
-      },
+    return _Tile(
+      title: 'Tra cứu điểm ngoại khóa',
+      icon: Icons.assistant_photo,
+      onTap: widget.extracurricularTap,
     );
   }
 
-  // ignore: non_constant_identifier_names
   Widget _QRCodeTile() {
-    return ListTile(
-      title: const Text('Tạo QR CODE'),
-      leading: const Icon(
-        Icons.blur_on,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () {
-        Navigator.of(context).pop();
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (BuildContext context) => QRCodeScreen(
-                data: _mainNotifier.getMSV,
-              ),
-            ));
-      },
+    return _Tile(
+      title: 'Tạo QR CODE',
+      icon: Icons.blur_on,
+      onTap: widget.qrCodeTap,
     );
   }
 
   Widget _supportTile() {
-    return ListTile(
-      title: const Text('Phản ánh lỗi, góp ý'),
-      leading: const Icon(
-        Icons.error,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () {
-        context.pop();
-        _mainNotifier.launchURL();
-      },
+    return _Tile(
+      title: 'Phản ánh lỗi, góp ý',
+      icon: Icons.error,
+      onTap: widget.supportTap,
     );
   }
 
   Widget _settingTile() {
-    return ListTile(
-      title: const Text('Cài đặt ứng dụng'),
-      leading: const Icon(
-        Icons.settings,
-        size: 30,
-        color: Colors.green,
-      ),
-      onTap: () {
-        context
-          ..pop()
-          ..push(((_) => SettingScren()));
-      },
+    return _Tile(
+      title: 'Cài đặt ứng dụng',
+      icon: Icons.settings,
+      onTap: widget.settingTap,
     );
   }
 
@@ -162,38 +99,8 @@ class _DrawerWidgetState extends State<DrawerWidget> {
         ),
       ),
       onTap: () {
-        Navigator.of(context).pop();
-        _confirmLogout();
-      },
-    );
-  }
-
-  Future<void> _confirmLogout() async {
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: true, // user must tap button!
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Bạn có muốn đăng xuất không?'),
-          actions: <Widget>[
-            FlatButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'Huỷ',
-                style: TextStyle(color: Colors.red),
-              ),
-            ),
-            FlatButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _mainNotifier.logOut();
-              },
-              child: const Text('Đồng ý'),
-            )
-          ],
-        );
+        context.pop();
+        widget.logoutTap();
       },
     );
   }
@@ -242,21 +149,25 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                 ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.yellow,
-                    child: Text(
-                        _mainNotifier.getName.substring(0, 1).toUpperCase()),
+                    child: Text(context
+                        .read(mainProvider)
+                        .getName
+                        .substring(0, 1)
+                        .toUpperCase()),
                   ),
                   title: Text(
-                    _mainNotifier.getName,
+                    context.read(mainProvider).getName,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  subtitle: Text(_mainNotifier.getClass),
+                  subtitle: Text(context.read(mainProvider).getClass),
                 ),
                 const Divider(),
                 Container(
                   height: MediaQuery.of(context).size.height * 0.4,
                   width: MediaQuery.of(context).size.width * 0.7,
                   child: ListView.builder(
-                      itemCount: _mainNotifier.getAllProfile.length,
+                      itemCount:
+                          context.read(mainProvider).getAllProfile.length,
                       itemBuilder: (BuildContext context, int index) {
                         return _layoutItemAccount(index);
                       }),
@@ -265,13 +176,9 @@ class _DrawerWidgetState extends State<DrawerWidget> {
                 GestureDetector(
                   onTap: () async {
                     context..pop()..pop();
-                    await context.push((_) =>
-                        ChangeNotifierProvider<LoginNotifier>(
-                          create: (_) =>
-                              LoginNotifier(Provider.of<MyDatabase>(context)),
-                          child: LoginScreen(),
-                        ));
-                    _mainNotifier.loadCurrentMSV();
+                    await context.push((_) => LoginScreen());
+                    context.read(mainProvider).loadCurrentMSV();
+                    context.refresh(mainProvider);
                   },
                   child: Padding(
                     padding: const EdgeInsets.only(left: 24, top: 4, bottom: 4),
@@ -303,10 +210,10 @@ class _DrawerWidgetState extends State<DrawerWidget> {
   }
 
   Widget _layoutItemAccount(int index) {
-    final Profile profile = _mainNotifier.getAllProfile[index];
+    final Profile profile = context.read(mainProvider).getAllProfile[index];
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: _mainNotifier.getRandomColor(),
+        backgroundColor: Colors.green,
         child: Text(profile?.HoTen?.substring(0, 1)?.toUpperCase()),
       ),
       title: Text(
@@ -316,46 +223,31 @@ class _DrawerWidgetState extends State<DrawerWidget> {
       subtitle: Text(profile.Lop ?? 'Lớp trống',
           style: const TextStyle(fontSize: 11)),
       onTap: () async {
-        _mainNotifier.switchToProfile(profile);
+        context.read(mainProvider).switchToProfile(profile);
         context..pop()..pop();
       },
     );
   }
 
   Widget _nameOfUser() {
-    if (_mainNotifier.getMSV == 'DTC165D4801030254') {
-      return const Text(
-        'TUyenOC',
-        style: TextStyle(color: Colors.white),
-      );
-    } else {
-      return Text(
-        _mainNotifier.getName,
-        style: const TextStyle(color: Colors.white),
-      );
-    }
+    return Text(
+      context.read(mainProvider).getName,
+      style: const TextStyle(color: Colors.white),
+    );
   }
 
   Widget _classOfUser() {
-    if (_mainNotifier.getMSV == 'DTC165D4801030254') {
-      return const Text(
-        'Tài khoản Premium',
-        style: TextStyle(color: Colors.white),
+    if (context.read(mainProvider).getClass.isNotEmpty) {
+      return Text(
+        context.read(mainProvider).getClass,
+        style: const TextStyle(color: Colors.white),
       );
-    } else {
-      if (_mainNotifier.getClass.isNotEmpty) {
-        return Text(
-          _mainNotifier.getClass,
-          style: const TextStyle(color: Colors.white),
-        );
-      } else {
-        return const SizedBox();
-      }
     }
+    return const SizedBox();
   }
 
   Widget _getAccountPicture() {
-    if (_mainNotifier.isGuest) {
+    if (context.read(mainProvider).isGuest) {
       // logo for guest
       return Container(
         width: 80,
@@ -373,7 +265,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
       child: CircleAvatar(
         backgroundColor: Colors.yellow,
         child: Text(
-          _mainNotifier.getAvatarName,
+          context.read(mainProvider).getAvatarName,
           style: const TextStyle(fontSize: 35, fontWeight: FontWeight.bold),
         ),
       ),
@@ -381,7 +273,7 @@ class _DrawerWidgetState extends State<DrawerWidget> {
   }
 
   List<Widget> listItemDrawer() {
-    if (_mainNotifier.isGuest) {
+    if (context.read(mainProvider).isGuest) {
       //những menu này dành cho người chưa đăng nhập
       return [
         _drawerHeader(),
@@ -409,15 +301,39 @@ class _DrawerWidgetState extends State<DrawerWidget> {
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _mainNotifier = context.read<MainNotifier>();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Drawer(
       child: ListView(padding: EdgeInsets.zero, children: listItemDrawer()),
+    );
+  }
+}
+
+class _Tile extends StatelessWidget {
+  const _Tile({
+    this.title,
+    this.icon,
+    this.colorIcon = Colors.green,
+    this.onTap,
+  });
+
+  final String title;
+  final IconData icon;
+  final Color colorIcon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(title),
+      leading: Icon(
+        icon,
+        size: 30,
+        color: colorIcon,
+      ),
+      onTap: () {
+        context.pop();
+        onTap?.call();
+      },
     );
   }
 }

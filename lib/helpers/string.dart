@@ -1,15 +1,15 @@
 class StringSupport {
-  static final Map<int, String> dots = <int, String>{};
+  static final Map<int, String> _dots = <int, String>{};
   String getDot(int count) {
-    if (dots[count] == null || dots[count].isEmpty) {
-      final StringBuffer stringBuffer = StringBuffer();
-      for (int i = 0; i < count; i++) {
+    if (_dots[count] == null || _dots[count].isEmpty) {
+      final stringBuffer = StringBuffer();
+      for (var i = 0; i < count; i++) {
         stringBuffer.write('•');
       }
-      dots[count] = stringBuffer.toString();
+      _dots[count] = stringBuffer.toString();
       return stringBuffer.toString();
     } else {
-      return dots[count];
+      return _dots[count];
     }
   }
 }

@@ -1,37 +1,24 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:syncfusion_flutter_core/core.dart';
 
 import 'config/strings.dart';
 import 'presentation/screens/main/main.dart';
-import 'presentation/screens/main/main_notifier.dart';
-import 'services/http/rest_client.dart';
 import 'services/local_storage/database/database.dart';
+
+final databaseProvider = Provider<MyDatabase>((ref) {
+  return MyDatabase.instance;
+});
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   //Register your license here
+  // Note: this is my license key for open source
   SyncfusionLicense.registerLicense(
       'NT8mJyc2IWhia31hfWN9Z2doYmF8YGJ8ampqanNiYmlmamlmanMDHmgnMT5qa303NiUTND4yOj99MDw+');
-  runApp(MultiProvider(providers: [
-    Provider<MyDatabase>(
-      create: (_) => MyDatabase.instance,
-      lazy: false,
-      // Đặt là lazy false thì nó sẽ được khởi tạo luôn, nếu không thì
-      // đến khi dùng nó mới khởi tạo, mà database sẽ tốn 1 khoảng thời
-      // gian nhất định để khởi tạo nên sẽ khởi tạo nó luôn từ đầu chánh
-      // tới lúc dùng lại phải đợi :D
-    ),
-    Provider<RestClient>(
-      create: (_) => RestClient.create(),
-    ),
-    ChangeNotifierProvider<MainNotifier>(
-      create: (BuildContext ct) =>
-          MainNotifier(Provider.of<MyDatabase>(ct, listen: false)),
-    )
-  ], child: MyApp()));
+  runApp(ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {

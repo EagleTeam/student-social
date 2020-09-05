@@ -1,32 +1,14 @@
-import 'dart:ui';
-
-import 'package:flutter/material.dart';
-
 import '../../../models/entities/profile.dart';
 import '../../../models/entities/schedule.dart';
 
 class MainModel {
-  double width = 0;
-  double itemWidth = 0;
-  double itemHeight = 250 / 6;
-  double drawerHeaderHeight = 300;
-
-  // title = 25, titleday = 25, tableheight = 250 , 16 margin
-  double tableHeight = 316;
-  String title = 'Student Social';
   String name = 'Tên sinh viên';
   String className = 'Lớp';
-
-  // mặc định msv là khách để khách có thể dùng bình thường
-  String msv = 'guest';
 
   Profile profile;
   List<Profile> allProfile;
   List<Schedule> _schedules = [];
   Map<String, List<Schedule>> entriesOfDay;
-
-  DateTime clickDate = DateTime.now();
-  DateTime currentDate = DateTime.now();
 
   List<Schedule> get schedules => _schedules;
 
@@ -34,32 +16,8 @@ class MainModel {
     _schedules = schedules..sort((a, b) => a.startTime.compareTo(b.startTime));
   }
 
-  String get keyOfCurrentEntries {
-    return '${getNum(clickDate.year)}-${getNum(clickDate.month)}-${getNum(clickDate.day)}';
-  }
-
-  String getNum(int n) {
-    if (n < 10) {
-      return '0$n';
-    }
-    return '$n';
-  }
-
-  static const List<Color> colors = [
-    Colors.blue,
-    Colors.red,
-    Colors.green,
-    Colors.yellow,
-    Colors.purple
-  ];
-
   bool get entriesOfDayNotEmpty =>
       entriesOfDay != null && entriesOfDay.isNotEmpty;
-
-  void initSize(Size size) {
-    width = size.width;
-    itemWidth = width / 7;
-  }
 
   void clearEntriesOfDay() {
     entriesOfDay.clear();
@@ -82,7 +40,6 @@ class MainModel {
   }
 
   void resetData() {
-    msv = '';
     profile = null;
     _schedules = List.from(_schedules..clear());
     entriesOfDay?.clear();

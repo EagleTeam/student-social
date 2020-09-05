@@ -45,7 +45,7 @@ class DateSupport {
   }
 
   String format(DateTime date) {
-    return '${date.year}-${date.month.toString().padRight(2, '0')}-${date.day.toString().padRight(2, '0')}';
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
   DateTime getDate(int day) {

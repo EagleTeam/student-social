@@ -1,36 +1,44 @@
-import 'package:studentsocial/models/entities/profile.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../main.dart';
+import '../../../../models/entities/profile.dart';
 import '../database.dart';
-import '../profile_dao.dart';
+
+/// provider profileRepository by watch databaseProvider
+final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
+  return ProfileRepository(ref.watch(databaseProvider));
+});
 
 class ProfileRepository {
-  ProfileRepository(MyDatabase database) {
-    profileDao = ProfileDao(database);
-  }
+  ProfileRepository(this.database);
 
-  ProfileDao profileDao;
+  final MyDatabase database;
 
   Future<int> insertOnlyUser(Profile user) async {
-    return await profileDao.insertOnlyUser(user);
-  }
-
-  Future<int> deleteAllUser() async {
-    return await profileDao.deleteAllUser();
-  }
-
-  Future<void> deleteUserByMSV(String msv) async {
-    return profileDao.deleteUserByMSV(msv);
+    return database.insert(user);
   }
 
   Future<int> updateOnlyUser(Profile user) async {
-    return profileDao.updateOnlyUser(user);
+    return database.updateProfile(user);
   }
 
-  Future<Profile> getUserByMaSV(String msv) async {
-    return await profileDao.getUserByMSV(msv);
+  Future<void> deleteOnlyUser(Profile user) async {
+    return database.deleteProfile(user.MaSinhVien);
   }
 
-  Future<List<Profile>> getAllUsers() async {
-    return await profileDao.getAllUsers();
+  Future<Profile> getUserByMSV(String msv) async {
+    return database.getProfileByMSV(msv);
+  }
+
+  Future<int> deleteAllUser() async {
+    return database.deleteAll(Profile.table);
+  }
+
+  Future<void> deleteUserByMSV(String msv) async {
+    return database.deleteProfile(msv);
+  }
+
+  Future<List<Profile>> getAllUsers() {
+    return database.getAllProfile();
   }
 }

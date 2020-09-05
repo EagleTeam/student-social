@@ -1,26 +1,33 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:studentsocial/helpers/logging.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:studentsocial/helpers/viet_calendar.dart';
 import 'package:studentsocial/models/entities/schedule.dart';
+import 'package:studentsocial/presentation/screens/main/main_providers.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
+final vietCalendar = VietCalendar();
+
 class CalendarWidget extends StatefulWidget {
-  const CalendarWidget({this.schedules, this.onTap});
+  const CalendarWidget({this.schedules, this.onTap, this.controller});
 
   final List<Schedule> schedules;
   final Function(CalendarTapDetails) onTap;
+  final CalendarController controller;
 
   @override
   _CalendarWidgetState createState() => _CalendarWidgetState();
 }
 
 class _CalendarWidgetState extends State<CalendarWidget> {
-  DateTime _date = DateTime.now();
-  CalendarController calendarController = CalendarController();
-
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      widget.controller.addPropertyChangedListener((value) {
+        context.read(dateSelectedProvider).state =
+            widget.controller.selectedDate;
+      });
+    });
   }
 
   CalendarHeaderStyle calendarHeaderStyle = CalendarHeaderStyle(
@@ -44,6 +51,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
         SizedBox(
           height: 300,
           child: SfCalendar(
+            controller: widget.controller,
             firstDayOfWeek: 1,
             headerStyle: calendarHeaderStyle,
             initialSelectedDate: DateTime.now(),
@@ -53,20 +61,22 @@ class _CalendarWidgetState extends State<CalendarWidget> {
             // change the display mode as appointment using the appointment display mode
             // property
             monthViewSettings: monthViewSettings,
-            onTap: (CalendarTapDetails details) {
+            showNavigationArrow: true,
+            onTap: (details) {
               if (details.targetElement == CalendarElement.calendarCell) {
-                if (widget.onTap != null) {
-                  widget.onTap(details);
-                }
-                setState(() {
-                  _date = details.date;
-                });
+                widget.onTap?.call(details);
               }
             },
           ),
         ),
-        Expanded(
-            child: ListScheduleWidget(date: _date, schedules: widget.schedules))
+        Consumer(
+          builder: (ctx, watch, child) {
+            final date = watch(dateSelectedProvider).state;
+            return Expanded(
+                child: ListScheduleWidget(
+                    date: date, schedules: widget.schedules));
+          },
+        )
       ],
     );
   }
@@ -81,12 +91,6 @@ class ListScheduleWidget extends StatelessWidget {
   final DateTime date;
   final List<Schedule> schedules;
   List<Schedule> _appointments = [];
-
-  String titleDay(BuildContext context) {
-    final DateFormat format =
-        DateFormat('EEE', Localizations.localeOf(context).languageCode);
-    return format.format(date);
-  }
 
   Widget itemSchedule(int index) {
     if (_appointments[index].LoaiLich == 'LichHoc') {
@@ -148,57 +152,36 @@ class ListScheduleWidget extends StatelessWidget {
     );
   }
 
-  bool isCurrentDay() {
-    final DateTime now = DateTime.now();
-    return now.year == date.year &&
-        now.month == date.month &&
-        now.day == date.day;
-  }
-
   Widget dateTitle(BuildContext context) {
-    if (isCurrentDay()) {
-      return Padding(
-        padding: const EdgeInsets.all(8),
-        child: currentDateTitle(context),
-      );
-    } else {
-      return Padding(
-        padding: const EdgeInsets.all(8),
-        child: normalDateTitle(context),
-      );
-    }
-  }
-
-  Widget currentDateTitle(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          titleDay(context),
-          style: const TextStyle(color: Colors.blueAccent),
-        ),
-        CircleAvatar(
-          backgroundColor: Colors.blueAccent,
-          child: Text(
-            date.day.toString(),
-            style: const TextStyle(
-                fontWeight: FontWeight.bold, color: Colors.white),
-          ),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: currentDateTitle(context),
     );
   }
 
-  Widget normalDateTitle(BuildContext context) {
+  Widget currentDateTitle(BuildContext context) {
+    final al = vietCalendar.lichAm(date.day, date.month, date.year);
     return Column(
       children: [
-        Text(
-          titleDay(context),
-          style: const TextStyle(color: Colors.grey),
+        const Text(
+          'Âm lịch',
+          style: TextStyle(color: Colors.blueAccent),
         ),
-        Text(
-          date.day.toString(),
-          style: const TextStyle(
-              fontWeight: FontWeight.bold, fontSize: 20, color: Colors.grey),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.blueAccent,
+            borderRadius: BorderRadius.circular(2),
+          ),
+          child: Text(
+            '${al[0]}/${al[1]}\n${al[2]}',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
       ],
     );

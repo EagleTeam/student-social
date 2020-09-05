@@ -1,13 +1,13 @@
 import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../helpers/logging.dart';
-import '../../models/entities/calendar.dart';
-import '../../models/entities/event_student_social.dart';
 import '../../models/entities/login_result.dart';
 import '../../models/entities/schedule.dart';
 import '../google_signin/google_http_client.dart';
 import '../google_signin/google_sign_in.dart';
+import 'calendar_entry.dart';
 import 'calendar_service_communicate.dart';
+import 'event_calendar_entry.dart';
 
 class CalendarServiceModel {
   GoogleSignInHelper googleSignInHelper = GoogleSignInHelper();

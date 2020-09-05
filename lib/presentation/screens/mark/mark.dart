@@ -2,9 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../helpers/dialog_support.dart';
 import '../../../models/entities/mark.dart';
 import 'mark_notifier.dart';
 
@@ -13,28 +12,13 @@ class MarkScreen extends StatefulWidget {
   _MarkScreenState createState() => _MarkScreenState();
 }
 
-class _MarkScreenState extends State<MarkScreen> with DialogSupport {
-  MarkNotifier _markViewModel;
-
-//  NetWorking _netWorking;
+class _MarkScreenState extends State<MarkScreen> {
   String mark;
   Map<String, String> subjectsName = <String, String>{};
   Map<String, String> subjectsSoTinChi = <String, String>{};
 
   @override
-  void initState() {
-    super.initState();
-//    _netWorking = NetWorking();
-  }
-
-  void _initViewModel() {
-    _markViewModel = Provider.of<MarkNotifier>(context);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    _initViewModel();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tra cứu điểm'),
@@ -58,7 +42,7 @@ class _MarkScreenState extends State<MarkScreen> with DialogSupport {
   }
 
   Widget _layoutItemMark(int index) {
-    final Mark mark = _markViewModel.getListMark()[index];
+    final Mark mark = context.read(markProvider).getListMark()[index];
     return Container(
       width: MediaQuery.of(context).size.width,
       padding: const EdgeInsets.only(top: 8, bottom: 8),
@@ -185,17 +169,20 @@ class _MarkScreenState extends State<MarkScreen> with DialogSupport {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
-                              Text('Tổng TC: ${_markViewModel.getTongTC}',
+                              Text(
+                                  'Tổng TC: ${context.read(markProvider).getTongTC}',
                                   style: const TextStyle(
                                       color: Colors.white, fontSize: 18)),
                               const Padding(padding: EdgeInsets.only(left: 16)),
-                              Text('STCTD: ${_markViewModel.getSTCTD}',
+                              Text(
+                                  'STCTD: ${context.read(markProvider).getSTCTD}',
                                   style: const TextStyle(
                                       color: Colors.white, fontSize: 18)),
                               const Padding(
                                 padding: EdgeInsets.only(left: 16),
                               ),
-                              Text('STCTLN: ${_markViewModel.getSTCTLN}',
+                              Text(
+                                  'STCTLN: ${context.read(markProvider).getSTCTLN}',
                                   style: const TextStyle(
                                       color: Colors.white, fontSize: 18))
                             ],
@@ -206,13 +193,15 @@ class _MarkScreenState extends State<MarkScreen> with DialogSupport {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: <Widget>[
-                              Text('ĐTB HS10: ${_markViewModel.getDTBC}',
+                              Text(
+                                  'ĐTB HS10: ${context.read(markProvider).getDTBC}',
                                   style: const TextStyle(
                                       color: Colors.white, fontSize: 18)),
                               const Padding(
                                 padding: EdgeInsets.only(left: 16),
                               ),
-                              Text('ĐTB HS4: ${_markViewModel.getDTBCQD}',
+                              Text(
+                                  'ĐTB HS4: ${context.read(markProvider).getDTBCQD}',
                                   style: const TextStyle(
                                       color: Colors.white, fontSize: 18))
                             ],
@@ -221,14 +210,14 @@ class _MarkScreenState extends State<MarkScreen> with DialogSupport {
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
-                              'Số môn không đạt: ${_markViewModel.getSoMonKhongDat}',
+                              'Số môn không đạt: ${context.read(markProvider).getSoMonKhongDat}',
                               style: const TextStyle(
                                   color: Colors.white, fontSize: 18)),
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 8),
                           child: Text(
-                              'Số tín chỉ không đạt: ${_markViewModel.getSoTCKhongDat}',
+                              'Số tín chỉ không đạt: ${context.read(markProvider).getSoTCKhongDat}',
                               style: const TextStyle(
                                   color: Colors.white, fontSize: 18)),
                         ),
@@ -246,7 +235,7 @@ class _MarkScreenState extends State<MarkScreen> with DialogSupport {
           return Container(
               padding: const EdgeInsets.only(bottom: 1),
               child: _layoutItemMark(index));
-        }, childCount: _markViewModel.getListMark().length))
+        }, childCount: context.read(markProvider).getListMark().length))
       ],
     );
   }
@@ -257,13 +246,13 @@ class _MarkScreenState extends State<MarkScreen> with DialogSupport {
 
   Widget _mainView() {
     //chon man hinh hien thi tuy theo du lieu
-    if (_markViewModel.getListMark == null) {
+    if (context.read(markProvider).getListMark == null) {
       //mac dinh
       return const Center(
         child: CircularProgressIndicator(),
       );
-    } else if (_markViewModel.getListMark() != null &&
-        _markViewModel.getListMark().isNotEmpty) {
+    } else if (context.read(markProvider).getListMark() != null &&
+        context.read(markProvider).getListMark().isNotEmpty) {
       return layoutDiem();
     } else {
       return layoutTrong();
@@ -271,12 +260,12 @@ class _MarkScreenState extends State<MarkScreen> with DialogSupport {
   }
 
   Future<void> _updateMark() async {
-//    mark = await _netWorking.getMark(_markViewModel.getToken);
+//    mark = await _netWorking.getMark(context.read(markProvider).getToken);
     addSubjects(mark);
     //validate diem
     validateMark();
     await saveMarkToDB();
-    _markViewModel.loadCurrentMSV();
+    context.read(markProvider).loadCurrentMSV();
 //    await showSuccess(context,'Cập nhật điểm thành công');
 //    pop(context);
   }
@@ -309,7 +298,7 @@ class _MarkScreenState extends State<MarkScreen> with DialogSupport {
 //        mark,
 //        json.encode(subjectsName),
 //        json.encode(subjectsSoTinChi),
-//        _markViewModel.getMSV);
+//        context.read(markProvider).getMSV);
 //    print('saveMarkToDB: $res');
   }
 
@@ -326,14 +315,14 @@ class _MarkScreenState extends State<MarkScreen> with DialogSupport {
               ListTile(
                   title: const Text('Tất cả'),
                   onTap: () {
-                    _markViewModel.actionFilter('ALL');
+                    context.read(markProvider).actionFilter('ALL');
                     Navigator.of(context).pop();
                   }),
               const Divider(height: 4),
               ListTile(
                 title: const Text('Xếp loại A'),
                 onTap: () {
-                  _markViewModel.actionFilter('A');
+                  context.read(markProvider).actionFilter('A');
                   Navigator.of(context).pop();
                 },
               ),
@@ -341,7 +330,7 @@ class _MarkScreenState extends State<MarkScreen> with DialogSupport {
               ListTile(
                 title: const Text('Xếp loại B'),
                 onTap: () {
-                  _markViewModel.actionFilter('B');
+                  context.read(markProvider).actionFilter('B');
                   Navigator.of(context).pop();
                 },
               ),
@@ -349,7 +338,7 @@ class _MarkScreenState extends State<MarkScreen> with DialogSupport {
               ListTile(
                 title: const Text('Xếp loại C'),
                 onTap: () {
-                  _markViewModel.actionFilter('C');
+                  context.read(markProvider).actionFilter('C');
                   Navigator.of(context).pop();
                 },
               ),
@@ -357,7 +346,7 @@ class _MarkScreenState extends State<MarkScreen> with DialogSupport {
               ListTile(
                 title: const Text('Xếp loại D'),
                 onTap: () {
-                  _markViewModel.actionFilter('D');
+                  context.read(markProvider).actionFilter('D');
                   Navigator.of(context).pop();
                 },
               ),
@@ -365,7 +354,7 @@ class _MarkScreenState extends State<MarkScreen> with DialogSupport {
               ListTile(
                 title: const Text('Xếp loại F'),
                 onTap: () {
-                  _markViewModel.actionFilter('F');
+                  context.read(markProvider).actionFilter('F');
                   Navigator.of(context).pop();
                 },
               ),
