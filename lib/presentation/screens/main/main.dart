@@ -276,7 +276,7 @@ class MainScreenState extends State<MainScreen> {
 
   Future<void> _uploadScheduleClicked() async {
     final loginResult = await context.read(mainProvider).googleLogin();
-    logs(loginResult.firebaseUser.photoURL);
+    logs(loginResult.user.photoURL);
     _showGoogleInfo(loginResult);
   }
 
@@ -361,7 +361,7 @@ class MainScreenState extends State<MainScreen> {
                     borderRadius: BorderRadius.circular(
                         MediaQuery.of(context).size.width * 0.2),
                     child: CachedNetworkImage(
-                      imageUrl: loginResult.firebaseUser.photoURL,
+                      imageUrl: loginResult.user.photoURL,
                       width: MediaQuery.of(context).size.width * 0.2,
                       height: MediaQuery.of(context).size.width * 0.2,
                       placeholder: (_, __) {
@@ -378,7 +378,7 @@ class MainScreenState extends State<MainScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        loginResult.firebaseUser.displayName,
+                        loginResult.user.displayName,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       IconButton(
