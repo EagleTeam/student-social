@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginResult {
-  LoginResult(this.firebaseUser, this.headers);
-  FirebaseUser firebaseUser;
+  LoginResult(this.user, this.headers);
+  User user;
 
   Map<String, String> headers;
 }

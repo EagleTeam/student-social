@@ -14,29 +14,27 @@ class GoogleSignInHelper {
   ]);
 
   Future<LoginResult> signInWithGoogle() async {
-    final GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
-    final GoogleSignInAuthentication googleSignInAuthentication =
-        await googleSignInAccount.authentication;
+    final googleSignInAccount = await googleSignIn.signIn();
+    final googleSignInAuthentication = await googleSignInAccount.authentication;
 
-    final AuthCredential credential = GoogleAuthProvider.getCredential(
+    final credential = GoogleAuthProvider.credential(
       accessToken: googleSignInAuthentication.accessToken,
       idToken: googleSignInAuthentication.idToken,
     );
 
-    final UserCredential authResult =
-        await _auth.signInWithCredential(credential);
+    final authResult = await _auth.signInWithCredential(credential);
 
-    final User user = authResult.user;
+    final user = authResult.user;
 
     // Checking if email and name is null
     assert(user.email != null, 'email must not be null');
     assert(user.displayName != null, 'displayName must not be null');
-    assert(user.photoUrl != null, 'photoUrl must not be null');
+    assert(user.photoURL != null, 'photoUrl must not be null');
 
     assert(!user.isAnonymous, 'user must not be anonymous');
     assert(await user.getIdToken() != null, 'token must not be null');
 
-    final User currentUser = _auth.currentUser;
+    final currentUser = _auth.currentUser;
     assert(user.uid == currentUser.uid, 'uid must be match');
 
     final headers = await googleSignInAccount.authHeaders;
