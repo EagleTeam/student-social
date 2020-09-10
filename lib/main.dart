@@ -47,8 +47,11 @@ class MyApp extends StatelessWidget {
             return Material(
               child: Container(
                 color: Colors.white,
-                child: const Center(
-                  child: Text('Oops!\n Something went wrong.'),
+                child: Center(
+                  child: Text(
+                    'Oops!\nSomething went wrong.\n${snapshot.error.toString()}',
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
             );

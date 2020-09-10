@@ -1,12 +1,6 @@
 # Uncomment this line to define a global platform for your project
 # platform :ios, '9.0'
 
-# ...
-target 'Runner' do
-  pod 'FirebaseFirestore', :git => 'https://github.com/invertase/firestore-ios-sdk-frameworks.git', :tag => '6.26.0'
-# ...
-end
-
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
 
