@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 3.6.7+55
+version: 3.6.8+56
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -42,7 +42,7 @@ dependencies:
   # for state management
   state_notifier: ^0.6.0
   # new version of provider
-  flutter_riverpod: ^0.9.1
+  flutter_riverpod: ^0.10.1
   action_mixin: ^0.1.1+1
 
   # for notification schedule
@@ -68,15 +68,15 @@ dependencies:
   logger: ^0.9.2
 
   # for calendar engine
-  syncfusion_flutter_calendar: ^18.2.55
-  syncfusion_flutter_core: ^18.2.55
+  syncfusion_flutter_calendar: ^18.2.57
+  syncfusion_flutter_core: ^18.2.57
 
   # for google services
   google_sign_in: ^4.5.3
   googleapis: ^0.55.0
   firebase_core: ^0.5.0
   firebase_auth: ^0.18.0+1
-  cached_network_image: ^2.3.1
+  cached_network_image: ^2.3.2+1
 
 dev_dependencies:
   flutter_test:

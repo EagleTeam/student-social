@@ -6,6 +6,9 @@ import 'package:studentsocial/presentation/screens/main/main_providers.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 final vietCalendar = VietCalendar();
+final calendarViewProvider = StateProvider<CalendarView>((ref) {
+  return CalendarView.month;
+});
 
 class CalendarWidget extends StatefulWidget {
   const CalendarWidget({this.schedules, this.onTap, this.controller});
@@ -35,8 +38,6 @@ class _CalendarWidgetState extends State<CalendarWidget> {
       textStyle:
           const TextStyle(fontWeight: FontWeight.bold, color: Colors.black));
 
-  CalendarView calendarView = CalendarView.month;
-
   MonthViewSettings monthViewSettings = MonthViewSettings(
     showAgenda: true,
     dayFormat: 'EEE',
@@ -46,6 +47,39 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
   @override
   Widget build(BuildContext context) {
+    return Consumer(
+      builder: (ctx, watch, child) {
+        final calendarView = watch(calendarViewProvider).state;
+        if (calendarView == CalendarView.month) {
+          return _calendarMonth();
+        }
+        return _calendarSchedule();
+      },
+    );
+  }
+
+  Widget _calendarSchedule() {
+    return SfCalendar(
+      controller: widget.controller,
+      firstDayOfWeek: 1,
+      headerStyle: calendarHeaderStyle,
+      initialSelectedDate: DateTime.now(),
+      view: CalendarView.schedule,
+      dataSource: ScheduleDataSource(widget.schedules),
+      // by default the month appointment display mode set as Indicator, we can
+      // change the display mode as appointment using the appointment display mode
+      // property
+      monthViewSettings: monthViewSettings,
+      showNavigationArrow: true,
+      onTap: (details) {
+        if (details.targetElement == CalendarElement.calendarCell) {
+          widget.onTap?.call(details);
+        }
+      },
+    );
+  }
+
+  Widget _calendarMonth() {
     return Column(
       children: [
         SizedBox(
@@ -55,7 +89,7 @@ class _CalendarWidgetState extends State<CalendarWidget> {
             firstDayOfWeek: 1,
             headerStyle: calendarHeaderStyle,
             initialSelectedDate: DateTime.now(),
-            view: calendarView,
+            view: CalendarView.month,
             dataSource: ScheduleDataSource(widget.schedules),
             // by default the month appointment display mode set as Indicator, we can
             // change the display mode as appointment using the appointment display mode
