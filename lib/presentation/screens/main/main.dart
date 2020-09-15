@@ -6,6 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lazy_code/lazy_code.dart';
+import 'package:studentsocial/services/local_storage/shared_prefs.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 import '../../../events/alert.dart';
@@ -33,7 +34,15 @@ import 'drawer.dart';
 import 'main_notifier.dart';
 import 'main_providers.dart';
 
+final _currentCalendarViewProvider = FutureProvider<CalendarView>((ref) async {
+  final caledarView = await SharedPrefs.instance.getCalendarView();
+  ref.read(calendarViewProvider).state = caledarView;
+  return caledarView;
+});
+
 class MainScreen extends StatefulWidget {
+  const MainScreen();
+
   @override
   State createState() => MainScreenState();
 }
@@ -110,12 +119,6 @@ class MainScreenState extends State<MainScreen> {
     context.refresh(mainProvider);
   }
 
-  void _handleCalendarController() {
-    _calendarController.addPropertyChangedListener((value) {
-      print(value);
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -129,7 +132,9 @@ class MainScreenState extends State<MainScreen> {
       body: Consumer(
         builder: (ctx, watch, child) {
           final schedules = watch(mainProvider).getSchedules;
-          if (schedules == null) {
+          final currentCalendarView = watch(_currentCalendarViewProvider);
+
+          if (schedules == null || currentCalendarView.data == null) {
             return const CircleLoading();
           }
           return CalendarWidget(
@@ -154,31 +159,37 @@ class MainScreenState extends State<MainScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Consumer(
-          builder: (ctx, watch, child) {
-            final dateSelected = watch(dateSelectedProvider).state;
-            if (dateSelected.formatDDMMYYY != DateTime.now().formatDDMMYYY) {
-              return child;
-            }
-            return const SizedBox();
+        FloatingActionButton(
+          onPressed: () {
+            _calendarController.selectedDate = DateTime.now();
+            _calendarController.displayDate = DateTime.now();
           },
-          child: FloatingActionButton(
-            onPressed: () {
-              _calendarController.selectedDate = DateTime.now();
-              _calendarController.displayDate = DateTime.now();
-            },
-            child: Text(
-              DateTime.now().day.toString(),
-              style: const TextStyle(fontSize: 24),
-            ),
+          child: Text(
+            DateTime.now().day.toString(),
+            style: const TextStyle(fontSize: 24),
           ),
         ),
         const Height(8),
         FloatingActionButton(
-          onPressed: () {
-            _showDialogAddGhiChu();
+          onPressed: () async {
+            if (context.read(calendarViewProvider).state ==
+                CalendarView.month) {
+              context.read(calendarViewProvider).state = CalendarView.schedule;
+            } else {
+              context.read(calendarViewProvider).state = CalendarView.month;
+            }
+            await SharedPrefs.instance
+                .setCalendarView(context.read(calendarViewProvider).state);
           },
-          child: const Icon(Icons.add),
+          child: Consumer(
+              builder: (ctx, watch, child) {
+                final calendarView = watch(calendarViewProvider).state;
+                if (calendarView == CalendarView.schedule) {
+                  return const Icon(Icons.calendar_today);
+                }
+                return child;
+              },
+              child: const Icon(Icons.calendar_view_day_outlined)),
         ),
       ],
     );
