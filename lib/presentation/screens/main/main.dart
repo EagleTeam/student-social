@@ -54,10 +54,45 @@ class MainScreenState extends State<MainScreen> {
     super.initState();
     context.read(mainProvider).initActions(_actions());
     _calendarController = CalendarController();
-    _updateSchedule = UpdateSchedule(
-      ScheduleType.update,
-    );
+    _updateSchedule = UpdateSchedule(ScheduleType.update);
     _updateSchedule.initActions(_actionUpdate());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Student Social'),
+        actions: <Widget>[
+          _uploadScheduleButton,
+          _updateScheduleButton,
+          _switchCalendarView()
+        ],
+      ),
+      body: Consumer(
+        builder: (ctx, watch, child) {
+          final schedules = watch(mainProvider).getSchedules;
+          final currentCalendarView = watch(_currentCalendarViewProvider);
+
+          if (schedules == null || currentCalendarView.data == null) {
+            return const CircleLoading();
+          }
+          return CalendarWidget(
+              schedules: schedules, controller: _calendarController);
+        },
+      ),
+      drawer: DrawerWidget(
+        loginTap: _loginTap,
+        timeTableTap: _timeTableTap,
+        markTap: _markTap,
+        extracurricularTap: _extracurricularTap,
+        qrCodeTap: _qrCodeTap,
+        supportTap: _supportTap,
+        settingTap: _settingTap,
+        logoutTap: _logoutTap,
+      ),
+      floatingActionButton: _floatingActionButton(),
+    );
   }
 
   List<ActionEntry> _actions() {
@@ -116,43 +151,6 @@ class MainScreenState extends State<MainScreen> {
     context.refresh(mainProvider);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Student Social'),
-        actions: <Widget>[
-          _uploadScheduleButton,
-          _updateScheduleButton,
-          _switchCalendarView()
-        ],
-      ),
-      body: Consumer(
-        builder: (ctx, watch, child) {
-          final schedules = watch(mainProvider).getSchedules;
-          final currentCalendarView = watch(_currentCalendarViewProvider);
-
-          if (schedules == null || currentCalendarView.data == null) {
-            return const CircleLoading();
-          }
-          return CalendarWidget(
-              schedules: schedules, controller: _calendarController);
-        },
-      ),
-      drawer: DrawerWidget(
-        loginTap: _loginTap,
-        timeTableTap: _timeTableTap,
-        markTap: _markTap,
-        extracurricularTap: _extracurricularTap,
-        qrCodeTap: _qrCodeTap,
-        supportTap: _supportTap,
-        settingTap: _settingTap,
-        logoutTap: _logoutTap,
-      ),
-      floatingActionButton: _floatingActionButton(),
-    );
-  }
-
   Widget _switchCalendarView() {
     return IconButton(
       onPressed: () async {
@@ -177,6 +175,7 @@ class MainScreenState extends State<MainScreen> {
   }
 
   Widget _floatingActionButton() {
+    // add more floatingActionButton to children if need.
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [

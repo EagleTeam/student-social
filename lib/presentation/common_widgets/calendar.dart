@@ -263,7 +263,7 @@ class ScheduleDataSource extends CalendarDataSource {
 
   @override
   String getSubject(int index) {
-    return appointments[index].HocPhan;
+    return '${appointments[index].diaDiemClean} ${appointments[index].hocPhanClean}';
   }
 
   @override
