@@ -165,14 +165,14 @@ class MainScreenState extends State<MainScreen> {
             .setCalendarView(context.read(calendarViewProvider).state);
       },
       icon: Consumer(
-          builder: (ctx, watch, child) {
-            final calendarView = watch(calendarViewProvider).state;
-            if (calendarView == CalendarView.schedule) {
-              return const Icon(Icons.calendar_today);
-            }
-            return child;
-          },
-          child: const Icon(Icons.calendar_view_day_outlined)),
+        builder: (ctx, watch, child) {
+          final calendarView = watch(calendarViewProvider).state;
+          if (calendarView == CalendarView.schedule) {
+            return const Icon(Icons.calendar_today);
+          }
+          return const Icon(Icons.calendar_view_day_outlined);
+        },
+      ),
     );
   }
 

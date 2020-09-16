@@ -47,7 +47,6 @@ class _QRCodeScreenState extends State<QRCodeScreen> {
                     padding: widget.padding,
                     child: QrImage(
                       data: _data,
-                      version: QrVersions.auto,
                       size: 200,
                     )),
               ),
