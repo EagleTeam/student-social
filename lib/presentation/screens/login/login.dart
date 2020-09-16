@@ -1,7 +1,6 @@
 import 'package:action_mixin/action_mixin.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lazy_code/lazy_code.dart';
 
 import '../../../events/alert.dart';
@@ -10,8 +9,6 @@ import '../../../events/loading_message.dart';
 import '../../../events/pop.dart';
 import '../../../events/save_success.dart';
 import '../../../helpers/dialog_support.dart';
-import '../../../services/local_storage/database/repository/profile_repository.dart';
-import '../../../services/local_storage/database/repository/schedule_repository.dart';
 import 'login_notifier.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -28,8 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _loginNotifier = LoginNotifier(context.read(profileRepositoryProvider),
-        context.read(scheduleRepositoryProvider));
+    _loginNotifier = LoginNotifier();
     _loginNotifier.initActions(actions());
     _loginNotifier.initActionUpdate(actions());
   }

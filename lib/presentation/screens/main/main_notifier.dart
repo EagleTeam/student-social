@@ -36,8 +36,6 @@ final mainProvider = ChangeNotifierProvider<MainNotifier>((ref) {
 class MainNotifier with ChangeNotifier, ActionMixin {
   /// handle in main screen
   MainNotifier(this.ref) {
-    _profileRepository = ref.watch(profileRepositoryProvider);
-    _scheduleRepository = ref.watch(scheduleRepositoryProvider);
     _mainModel = MainModel();
     _notification = NotificationConfig();
     _calendarServiceModel = CalendarServiceModel();
@@ -48,8 +46,6 @@ class MainNotifier with ChangeNotifier, ActionMixin {
 
   MainModel _mainModel;
   NotificationConfig _notification;
-  ProfileRepository _profileRepository;
-  ScheduleRepository _scheduleRepository;
   CalendarServiceModel _calendarServiceModel;
   final StreamController _streamResultUpload = StreamController();
 
@@ -120,7 +116,7 @@ class MainNotifier with ChangeNotifier, ActionMixin {
   }
 
   Future<int> insertProfileGuest() async {
-    return await _profileRepository.insertOnlyUser(Profile.guest());
+    return await ProfileRepository.instance.insertOnlyUser(Profile.guest());
   }
 
   Future<void> loadCurrentMSV() async {
@@ -135,19 +131,19 @@ class MainNotifier with ChangeNotifier, ActionMixin {
   }
 
   Future<void> loadProfile() async {
-    final profile = await _profileRepository.getUserByMSV(getMSV);
+    final profile = await ProfileRepository.instance.getUserByMSV(getMSV);
     _mainModel.profile = profile;
     notifyListeners();
   }
 
   Future<void> loadAllProfile() async {
-    final profiles = await _profileRepository.getAllUsers();
+    final profiles = await ProfileRepository.instance.getAllUsers();
     _mainModel.allProfile = profiles;
     notifyListeners();
   }
 
   Future<void> loadSchedules() async {
-    final schedule = await _scheduleRepository.getListSchedules(getMSV);
+    final schedule = await ScheduleRepository.instance.getListSchedules(getMSV);
     _mainModel.schedules = schedule;
     notifyListeners();
     logs('schedule is ${schedule.length}');
@@ -213,7 +209,7 @@ class MainNotifier with ChangeNotifier, ActionMixin {
     //xoá hết lịch,điểm,profile của thằng msv hiện tại
 
     try {
-      final profiles = await _profileRepository.getAllUsers();
+      final profiles = await ProfileRepository.instance.getAllUsers();
 
       //lấy ra toàn bộ user có trong máy
       profiles.removeWhere((profile) =>
@@ -227,14 +223,14 @@ class MainNotifier with ChangeNotifier, ActionMixin {
         await SharedPrefs.instance.setCurrentMSV('');
       }
       //Xoá profile
-      await _profileRepository.deleteUserByMSV(getMSV);
+      await ProfileRepository.instance.deleteUserByMSV(getMSV);
       //Xoá điểm
       //TODO: Xoa diem
 //      await PlatformChannel.database.invokeMethod(
 //          PlatformChannel.removeMarkByMSV,
 //          <String, String>{'msv': _mainModel.msv});
       //Xoá lịch
-      await _scheduleRepository.deleteScheduleByMSV(getMSV);
+      await ScheduleRepository.instance.deleteScheduleByMSV(getMSV);
       //reset data
       _mainModel.resetData();
       await loadCurrentMSV();

@@ -19,8 +19,6 @@ import '../../../helpers/dialog_support.dart';
 import '../../../helpers/logging.dart';
 import '../../../models/entities/login_result.dart';
 import '../../../models/update_schedule.dart';
-import '../../../services/local_storage/database/repository/profile_repository.dart';
-import '../../../services/local_storage/database/repository/schedule_repository.dart';
 import '../../common_widgets/add_note.dart';
 import '../../common_widgets/calendar.dart';
 import '../../common_widgets/circle_loading.dart';
@@ -57,9 +55,8 @@ class MainScreenState extends State<MainScreen> {
     context.read(mainProvider).initActions(_actions());
     _calendarController = CalendarController();
     _updateSchedule = UpdateSchedule(
-        ScheduleType.update,
-        context.read(profileRepositoryProvider),
-        context.read(scheduleRepositoryProvider));
+      ScheduleType.update,
+    );
     _updateSchedule.initActions(_actionUpdate());
   }
 
@@ -127,6 +124,7 @@ class MainScreenState extends State<MainScreen> {
         actions: <Widget>[
           _uploadScheduleButton,
           _updateScheduleButton,
+          _switchCalendarView()
         ],
       ),
       body: Consumer(
@@ -155,6 +153,29 @@ class MainScreenState extends State<MainScreen> {
     );
   }
 
+  Widget _switchCalendarView() {
+    return IconButton(
+      onPressed: () async {
+        if (context.read(calendarViewProvider).state == CalendarView.month) {
+          context.read(calendarViewProvider).state = CalendarView.schedule;
+        } else {
+          context.read(calendarViewProvider).state = CalendarView.month;
+        }
+        await SharedPrefs.instance
+            .setCalendarView(context.read(calendarViewProvider).state);
+      },
+      icon: Consumer(
+          builder: (ctx, watch, child) {
+            final calendarView = watch(calendarViewProvider).state;
+            if (calendarView == CalendarView.schedule) {
+              return const Icon(Icons.calendar_today);
+            }
+            return child;
+          },
+          child: const Icon(Icons.calendar_view_day_outlined)),
+    );
+  }
+
   Widget _floatingActionButton() {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -168,28 +189,6 @@ class MainScreenState extends State<MainScreen> {
             DateTime.now().day.toString(),
             style: const TextStyle(fontSize: 24),
           ),
-        ),
-        const Height(8),
-        FloatingActionButton(
-          onPressed: () async {
-            if (context.read(calendarViewProvider).state ==
-                CalendarView.month) {
-              context.read(calendarViewProvider).state = CalendarView.schedule;
-            } else {
-              context.read(calendarViewProvider).state = CalendarView.month;
-            }
-            await SharedPrefs.instance
-                .setCalendarView(context.read(calendarViewProvider).state);
-          },
-          child: Consumer(
-              builder: (ctx, watch, child) {
-                final calendarView = watch(calendarViewProvider).state;
-                if (calendarView == CalendarView.schedule) {
-                  return const Icon(Icons.calendar_today);
-                }
-                return child;
-              },
-              child: const Icon(Icons.calendar_view_day_outlined)),
         ),
       ],
     );

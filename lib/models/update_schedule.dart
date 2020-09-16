@@ -18,11 +18,9 @@ import 'entities/semester.dart';
 enum ScheduleType { login, update }
 
 class UpdateSchedule with ActionMixin {
-  UpdateSchedule(this._type, this._profileRepository, this._scheduleRepository);
+  UpdateSchedule(this._type);
 
   final ScheduleType _type;
-  final ProfileRepository _profileRepository;
-  final ScheduleRepository _scheduleRepository;
   String _token;
   LoginState _loginState = LoginState();
 
@@ -78,7 +76,7 @@ class UpdateSchedule with ActionMixin {
           const EventLoadingMessage(message: 'Đang lưu thông tin người dùng'));
       logs('save profile is ${_loginState.profile}');
       final resProfile =
-          await _profileRepository.insertOnlyUser(_loginState.profile);
+          await ProfileRepository.instance.insertOnlyUser(_loginState.profile);
       callback(const EventPop());
       logs('saveProfileToDB: $resProfile');
       final resCurrentMSV =
@@ -88,16 +86,16 @@ class UpdateSchedule with ActionMixin {
 
     callback(const EventLoadingMessage(message: 'Đang lưu lịch cá nhân'));
     // delete all schedule old
-    await _scheduleRepository.deleteScheduleByMSV(_loginState.msv);
+    await ScheduleRepository.instance.deleteScheduleByMSV(_loginState.msv);
     await _saveMarkToDB();
     if (_loginState.lichHoc.isSuccess()) {
       (_loginState.lichHoc as ScheduleSuccess).message.addMSV(_loginState.msv);
-      await _scheduleRepository.insertListSchedules(
+      await ScheduleRepository.instance.insertListSchedules(
           (_loginState.lichHoc as ScheduleSuccess).message.Entries);
     }
     if (_loginState.lichThi.isSuccess()) {
       (_loginState.lichThi as ScheduleSuccess).message.addMSV(_loginState.msv);
-      await _scheduleRepository.insertListSchedules(
+      await ScheduleRepository.instance.insertListSchedules(
           (_loginState.lichThi as ScheduleSuccess).message.Entries);
     }
     callback(const EventPop());

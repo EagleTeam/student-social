@@ -11,5 +11,5 @@ final dateSelectedProvider = StateProvider.autoDispose<DateTime>((ref) {
 final currentProfileProvider = FutureProvider<Profile>((ref) async {
   final currentMSV = await SharedPrefs.instance.getCurrentMSV();
 
-  return ref.read(profileRepositoryProvider).getUserByMSV(currentMSV);
+  return ProfileRepository.instance.getUserByMSV(currentMSV);
 });

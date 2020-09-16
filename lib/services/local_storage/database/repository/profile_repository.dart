@@ -1,18 +1,17 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../main.dart';
 import '../../../../models/entities/profile.dart';
 import '../database.dart';
 
-/// provider profileRepository by watch databaseProvider
-final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
-  return ProfileRepository(ref.watch(databaseProvider));
-});
-
 class ProfileRepository {
-  ProfileRepository(this.database);
+  ProfileRepository._();
 
-  final MyDatabase database;
+  static ProfileRepository _instance;
+
+  static ProfileRepository get instance {
+    _instance ??= ProfileRepository._();
+    return _instance;
+  }
+
+  MyDatabase get database => MyDatabase.instance;
 
   Future<int> insertOnlyUser(Profile user) async {
     return database.insert(user);
