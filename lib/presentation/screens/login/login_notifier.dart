@@ -13,22 +13,18 @@ import '../../../models/entities/semester.dart';
 import '../../../models/update_schedule.dart';
 import '../../../services/http/rest_client.dart';
 import '../../../services/local_storage/database/repository/profile_repository.dart';
-import '../../../services/local_storage/database/repository/schedule_repository.dart';
 import 'login_state.dart';
 
 /// Login ChangeNotifier
 class LoginNotifier with ActionMixin {
   /// Login ChangeNotifier
-  LoginNotifier(this._profileRepository, this._scheduleRepository) {
+  LoginNotifier() {
     _loginState = LoginState();
-    _updateSchedule = UpdateSchedule(
-        ScheduleType.login, _profileRepository, _scheduleRepository);
+    _updateSchedule = UpdateSchedule(ScheduleType.login);
   }
 
   UpdateSchedule _updateSchedule;
   LoginState _loginState;
-  final ProfileRepository _profileRepository;
-  final ScheduleRepository _scheduleRepository;
 
   bool _dataIsInvalid(String email, String password) =>
       email.trim().isEmpty || password.trim().isEmpty;
@@ -65,7 +61,7 @@ class LoginNotifier with ActionMixin {
   }
 
   Future<bool> _isUserExists(String email) async {
-    final allProfile = await _profileRepository.getUserByMSV(email);
+    final allProfile = await ProfileRepository.instance.getUserByMSV(email);
     return allProfile != null;
   }
 

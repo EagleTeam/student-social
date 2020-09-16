@@ -1,19 +1,20 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../helpers/logging.dart';
-import '../../../../main.dart';
 import '../../../../models/entities/schedule.dart';
 import '../database.dart';
 
-final scheduleRepositoryProvider = Provider<ScheduleRepository>((ref) {
-  return ScheduleRepository(ref.watch(databaseProvider));
-});
-
 class ScheduleRepository {
-  ScheduleRepository(this.database);
+  ScheduleRepository._();
 
-  final MyDatabase database;
+  static ScheduleRepository _instance;
+
+  static ScheduleRepository get instance {
+    _instance ??= ScheduleRepository._();
+    return _instance;
+  }
+
+  MyDatabase get database => MyDatabase.instance;
 
   Future<List<Schedule>> getListSchedules(String msv) async {
     return database.getAllSchedule(msv);

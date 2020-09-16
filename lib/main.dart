@@ -6,11 +6,6 @@ import 'package:syncfusion_flutter_core/core.dart';
 
 import 'config/strings.dart';
 import 'presentation/screens/main/main.dart';
-import 'services/local_storage/database/database.dart';
-
-final databaseProvider = Provider<MyDatabase>((ref) {
-  return MyDatabase.instance;
-});
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
