@@ -12,8 +12,8 @@ Phiên bản v4 này sẽ loại bỏ hoàn toàn code ở phần native, chuy�
 
 ## Thông tin các nhánh
 
-### Nhánh Master là phiên bản code ổn định nhất, đã check và kiểm tra lỗi
+- Nhánh Master là phiên bản code ổn định nhất, đã check và kiểm tra lỗi
 
-### Nhánh Dev là phiên bản code biến động liên tục khi 1 tính năng mới ra mắt hoặc fix lỗi, sửa code. không ổn định.
+- Nhánh Dev là phiên bản code biến động liên tục khi 1 tính năng mới ra mắt hoặc fix lỗi, sửa code. không ổn định.
 
-### Các nhánh còn lại là phiên bản code của từng thành viên nên có thể sẽ rất nhiều lỗi.
+- Các nhánh còn lại là phiên bản code của từng thành viên nên có thể sẽ rất nhiều lỗi.
