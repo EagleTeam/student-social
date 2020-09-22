@@ -1,6 +1,11 @@
-import 'package:action_mixin/action_mixin.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:action_mixin/action_mixin.dart';
 import 'package:lazy_code/lazy_code.dart';
+
+// Project imports:
 import 'package:studentsocial/events/alert_chon_kyhoc.dart';
 import 'package:studentsocial/events/loading_message.dart';
 import 'package:studentsocial/events/pop.dart';
@@ -11,7 +16,6 @@ import 'package:studentsocial/services/http/rest_client.dart';
 import 'package:studentsocial/services/local_storage/database/repository/profile_repository.dart';
 import 'package:studentsocial/services/local_storage/database/repository/schedule_repository.dart';
 import 'package:studentsocial/services/local_storage/shared_prefs.dart';
-
 import 'entities/schedule.dart';
 import 'entities/semester.dart';
 

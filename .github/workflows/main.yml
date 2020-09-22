@@ -18,7 +18,9 @@ jobs:
         run: flutter pub get
 
       - name: Check format code
-        run: flutter format --set-exit-if-changed --line-length 80 lib test
+        run: |
+          flutter format --set-exit-if-changed --line-length 80 lib test
+          flutter pub run import_sorter:main --exit-if-changed
 
       - name: Unit test
         run: flutter test --coverage test/test

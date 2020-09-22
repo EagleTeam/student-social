@@ -1,4 +1,7 @@
+// Package imports:
 import 'package:flutter_test/flutter_test.dart';
+
+// Project imports:
 import 'package:studentsocial/models/entities/login.dart';
 import 'package:studentsocial/services/http/rest_client.dart';
 

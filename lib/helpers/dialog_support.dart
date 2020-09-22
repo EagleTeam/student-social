@@ -1,6 +1,10 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:lazy_code/lazy_code.dart';
 
+// Project imports:
 import 'logging.dart';
 
 Future<void> loadingMessage(BuildContext context, String msg) {

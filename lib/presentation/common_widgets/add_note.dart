@@ -1,9 +1,13 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lazy_code/lazy_code.dart';
-import 'package:studentsocial/presentation/screens/main/main_notifier.dart';
 
+// Project imports:
+import 'package:studentsocial/presentation/screens/main/main_notifier.dart';
 import '../../helpers/logging.dart';
 import '../../models/entities/schedule.dart';
 

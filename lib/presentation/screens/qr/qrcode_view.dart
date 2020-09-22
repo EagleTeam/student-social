@@ -1,5 +1,8 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+
+// Package imports:
 import 'package:lazy_code/lazy_code.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 

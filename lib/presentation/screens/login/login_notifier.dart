@@ -1,9 +1,14 @@
+// Dart imports:
 import 'dart:async';
 
-import 'package:action_mixin/action_mixin.dart';
-import 'package:connectivity/connectivity.dart';
+// Flutter imports:
 import 'package:flutter/material.dart';
 
+// Package imports:
+import 'package:action_mixin/action_mixin.dart';
+import 'package:connectivity/connectivity.dart';
+
+// Project imports:
 import '../../../events/alert.dart';
 import '../../../events/loading_message.dart';
 import '../../../events/pop.dart';

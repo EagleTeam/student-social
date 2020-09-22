@@ -1,10 +1,15 @@
+// Dart imports:
 import 'dart:convert';
 
-import 'package:connectivity/connectivity.dart';
+// Flutter imports:
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:studentsocial/helpers/logging.dart';
 
+// Package imports:
+import 'package:connectivity/connectivity.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Project imports:
+import 'package:studentsocial/helpers/logging.dart';
 import '../../../models/entities/mark.dart';
 import '../../../models/entities/profile.dart';
 import 'mark_model.dart';

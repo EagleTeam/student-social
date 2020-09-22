@@ -1,12 +1,15 @@
+// Dart imports:
 import 'dart:async';
 
+// Package imports:
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+
+// Project imports:
 import 'package:studentsocial/models/entities/db_parseable.dart';
 import 'package:studentsocial/models/entities/mark.dart';
 import 'package:studentsocial/models/entities/profile.dart';
 import 'package:studentsocial/models/entities/schedule.dart';
-
 import '../../../helpers/logging.dart';
 
 ///******************** MyDatabase *****************///

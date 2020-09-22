@@ -1,5 +1,7 @@
+// Dart imports:
 import 'dart:convert';
 
+// Package imports:
 import 'package:json_annotation/json_annotation.dart';
 
 part 'semester.g.dart';

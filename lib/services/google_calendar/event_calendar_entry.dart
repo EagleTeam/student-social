@@ -1,3 +1,4 @@
+// Project imports:
 import '../../models/entities/schedule.dart';
 
 class EventStudentSocial {

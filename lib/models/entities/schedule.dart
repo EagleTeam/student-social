@@ -1,6 +1,10 @@
+// Dart imports:
 import 'dart:convert';
 
+// Package imports:
 import 'package:json_annotation/json_annotation.dart';
+
+// Project imports:
 import 'package:studentsocial/helpers/date.dart';
 import 'package:studentsocial/helpers/logging.dart';
 import 'db_parseable.dart';

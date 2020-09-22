@@ -1,5 +1,7 @@
+// Package imports:
 import 'package:google_sign_in/google_sign_in.dart';
 
+// Project imports:
 import '../../helpers/logging.dart';
 import '../../models/entities/login_result.dart';
 import '../../models/entities/schedule.dart';

@@ -1,12 +1,17 @@
+// Dart imports:
 import 'dart:async';
 
+// Flutter imports:
+import 'package:flutter/foundation.dart';
+
+// Package imports:
 import 'package:action_mixin/action_mixin.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+// Project imports:
 import '../../../events/alert.dart';
 import '../../../events/alert_update_schedule.dart';
 import '../../../helpers/logging.dart';

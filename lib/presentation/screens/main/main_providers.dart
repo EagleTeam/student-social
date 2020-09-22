@@ -1,4 +1,7 @@
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// Project imports:
 import 'package:studentsocial/models/entities/profile.dart';
 import 'package:studentsocial/services/local_storage/database/repository/profile_repository.dart';
 import 'package:studentsocial/services/local_storage/shared_prefs.dart';

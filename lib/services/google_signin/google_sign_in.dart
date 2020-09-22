@@ -1,7 +1,9 @@
+// Package imports:
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/calendar/v3.dart';
 
+// Project imports:
 import '../../models/entities/login_result.dart';
 
 class GoogleSignInHelper {

@@ -1,7 +1,11 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lazy_code/lazy_code.dart';
 
+// Project imports:
 import '../../../models/entities/profile.dart';
 import '../login/login.dart';
 import 'main_notifier.dart';

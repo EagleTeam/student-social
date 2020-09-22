@@ -1,9 +1,14 @@
+// Flutter imports:
 import 'package:flutter/material.dart';
+
+// Package imports:
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:syncfusion_flutter_calendar/calendar.dart';
+
+// Project imports:
 import 'package:studentsocial/helpers/viet_calendar.dart';
 import 'package:studentsocial/models/entities/schedule.dart';
 import 'package:studentsocial/presentation/screens/main/main_providers.dart';
-import 'package:syncfusion_flutter_calendar/calendar.dart';
 
 final vietCalendar = VietCalendar();
 final calendarViewProvider = StateProvider<CalendarView>((ref) {
