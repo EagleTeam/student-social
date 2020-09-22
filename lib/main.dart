@@ -1,23 +1,32 @@
-import 'package:firebase_core/firebase_core.dart';
+// Flutter imports:
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:syncfusion_flutter_core/core.dart';
 
+// Project imports:
 import 'config/strings.dart';
 import 'presentation/screens/main/main.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  //Register your license here
+  // Register your license here
   // Note: this is my license key for open source
   SyncfusionLicense.registerLicense(
       'NT8mJyc2IWhia31hfWN9Z2doYmF8YGJ8ampqanNiYmlmamlmanMDHmgnMT5qa303NiUTND4yOj99MDw+');
   runApp(ProviderScope(child: MyApp()));
 }
 
+// ignore: public_member_api_docs
 class MyApp extends StatelessWidget {
-  // Create the initilization Future outside of `build`:
+  // ignore: public_member_api_docs
+  MyApp({Key key}) : super(key: key);
+
+  // Create the initialization Future outside of `build`:
   final Future<FirebaseApp> _initialization = Firebase.initializeApp();
 
   @override
@@ -39,17 +48,8 @@ class MyApp extends StatelessWidget {
         builder: (context, snapshot) {
           // Check for errors
           if (snapshot.hasError) {
-            return Material(
-              child: Container(
-                color: Colors.white,
-                child: Center(
-                  child: Text(
-                    'Oops!\nSomething went wrong.\n${snapshot.error.toString()}',
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ),
-            );
+            return _FirebaseLoading(
+                'Oops!\nSomething went wrong.\n${snapshot.error.toString()}');
           }
 
           // Once complete, show your application
@@ -58,16 +58,37 @@ class MyApp extends StatelessWidget {
           }
 
           // Otherwise, show something whilst waiting for initialization to complete
-          return Material(
-            child: Container(
-              color: Colors.white,
-              child: const Center(
-                child: Text('Loading Firebase ...'),
-              ),
-            ),
-          );
+          return const _FirebaseLoading('Loading Firebase ...');
         },
       ),
     );
+  }
+}
+
+class _FirebaseLoading extends StatelessWidget {
+  const _FirebaseLoading(this.title);
+
+  /// title for firebase loading
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      child: Container(
+        color: Colors.white,
+        child: Center(
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('title', title));
   }
 }

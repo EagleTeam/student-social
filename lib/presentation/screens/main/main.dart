@@ -1,14 +1,18 @@
+// Dart imports:
 import 'dart:async';
 
-import 'package:action_mixin/action_mixin.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+// Flutter imports:
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+// Package imports:
+import 'package:action_mixin/action_mixin.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lazy_code/lazy_code.dart';
-import 'package:studentsocial/services/local_storage/shared_prefs.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
 
+// Project imports:
 import '../../../events/alert.dart';
 import '../../../events/alert_chon_kyhoc.dart';
 import '../../../events/alert_update_schedule.dart';
@@ -19,9 +23,11 @@ import '../../../helpers/dialog_support.dart';
 import '../../../helpers/logging.dart';
 import '../../../models/entities/login_result.dart';
 import '../../../models/update_schedule.dart';
+import '../../../services/local_storage/shared_prefs.dart';
 import '../../common_widgets/add_note.dart';
 import '../../common_widgets/calendar.dart';
 import '../../common_widgets/circle_loading.dart';
+import '../../common_widgets/upload_calendar_process.dart';
 import '../extracurricular/extracurricular.dart';
 import '../login/login.dart';
 import '../mark/mark.dart';
@@ -39,7 +45,7 @@ final _currentCalendarViewProvider = FutureProvider<CalendarView>((ref) async {
 });
 
 class MainScreen extends StatefulWidget {
-  const MainScreen();
+  const MainScreen({Key key}) : super(key: key);
 
   @override
   State createState() => MainScreenState();
@@ -231,7 +237,7 @@ class MainScreenState extends State<MainScreen> {
   }
 
   void _settingTap() {
-    context.push(((_) => SettingScren()));
+    context.push(((_) => SettingScreen()));
   }
 
   void _logoutTap() {
@@ -300,55 +306,12 @@ class MainScreenState extends State<MainScreen> {
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: StreamBuilder(
-                  stream: context
-                      .read(mainProvider)
-                      .calendarServiceCommunicate
-                      .addEvents(events),
-                  builder: (context, snapshot) {
-                    logs('data is ${snapshot.data}');
-                    if (snapshot.hasData) {
-                      if (snapshot.data < 1.0) {
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Center(
-                                child: CircularProgressIndicator(
-                              value: snapshot.data,
-                            )),
-                            Text(
-                                'Đang tải lên ${((snapshot.data as double) * 100).toInt()}%')
-                          ],
-                        );
-                      } else {
-                        return Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Center(
-                                child: Icon(
-                              Icons.check_circle,
-                              color: Colors.green,
-                              size: 50,
-                            )),
-                            const Text('Tải lên hoàn tất!'),
-                            OutlineButton(
-                              onPressed: () {
-                                Navigator.of(ct).pop();
-                              },
-                              child: const Text('Xong'),
-                            )
-                          ],
-                        );
-                      }
-                    } else {
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Center(child: CircularProgressIndicator()),
-                        ],
-                      );
-                    }
-                  }),
+              child: UploadCalendarProcess(
+                context
+                    .read(mainProvider)
+                    .calendarServiceCommunicate
+                    .addEvents(events),
+              ),
             ),
           );
         });
